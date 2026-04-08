@@ -100,6 +100,31 @@
 
       <!-- ALLE TRAININGS + PDF -->
       <section class="card" id="all-trainings-section">
+
+        <div class="button-row" style="margin-bottom: 10px;">
+  <button type="button" id="toggle-pdf-btn" class="secondary small-btn">
+    PDF Export
+  </button>
+</div>
+
+<div id="pdf-wrapper" class="hidden">
+  <div class="form-group">
+    <label for="pdf-from-date">Von</label>
+    <input type="date" id="pdf-from-date" />
+  </div>
+
+  <div class="form-group">
+    <label for="pdf-to-date">Bis</label>
+    <input type="date" id="pdf-to-date" />
+  </div>
+
+  <div class="button-row">
+    <button type="button" id="generate-pdf-btn">PDF generieren</button>
+  </div>
+
+  <p id="pdf-error" class="training-meta hidden"></p>
+</div>
+        
         <div class="section-header">
           <h2>Alle Trainings</h2>
           <button id="toggle-all-trainings-btn">Anzeigen</button>
