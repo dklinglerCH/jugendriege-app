@@ -76,7 +76,7 @@ let isStartingFirestore = false;
 let currentRole = localStorage.getItem("jr-role") || "";
 
 /* =========================
-   HILFSFUNKTIONEN LOGIN
+   LOGIN
 ========================= */
 function isAdmin() {
   return currentRole === "admin";
@@ -163,7 +163,7 @@ function logout() {
 }
 
 /* =========================
-   DATUM / TRAINING HILFE
+   TRAINING HILFSFUNKTIONEN
 ========================= */
 function parseLocalDate(dateString) {
   return new Date(`${dateString}T00:00:00`);
@@ -281,7 +281,7 @@ async function finalizePastTrainingsIfNeeded() {
 }
 
 /* =========================
-   RENDER FORM
+   FORM
 ========================= */
 function resetForm() {
   editingTrainingIdInput.value = "";
@@ -320,7 +320,6 @@ function renderProgramPreview() {
   document.querySelectorAll(".remove-program-btn").forEach((button) => {
     button.addEventListener("click", () => {
       if (!isAdmin()) return;
-
       const index = Number(button.dataset.index);
       currentProgramItems.splice(index, 1);
       renderProgramPreview();
@@ -329,7 +328,7 @@ function renderProgramPreview() {
 }
 
 /* =========================
-   RENDER NÄCHSTES TRAINING
+   NÄCHSTES TRAINING
 ========================= */
 function renderNextTraining() {
   const nextTraining = getNextTraining();
@@ -384,7 +383,6 @@ function renderNextTraining() {
   nextTrainingProgram.querySelectorAll("input[type='checkbox']").forEach((checkbox) => {
     checkbox.addEventListener("change", async (event) => {
       if (!isLoggedIn()) return;
-
       await toggleNextTrainingProgramItem(
         Number(event.target.dataset.index),
         event.target.checked
@@ -395,15 +393,11 @@ function renderNextTraining() {
 
 async function toggleNextTrainingProgramItem(index, checked) {
   const nextTraining = getNextTraining();
-
   if (!nextTraining) return;
 
   const updatedProgram = nextTraining.program.map((item, itemIndex) => {
     if (itemIndex === index) {
-      return {
-        ...item,
-        checked
-      };
+      return { ...item, checked };
     }
     return item;
   });
@@ -419,9 +413,7 @@ async function addNextTrainingProgramItem() {
   const text = nextProgramInput.value.trim();
   const nextTraining = getNextTraining();
 
-  if (!nextTraining || text === "") {
-    return;
-  }
+  if (!nextTraining || text === "") return;
 
   const updatedProgram = [
     ...nextTraining.program,
@@ -439,7 +431,7 @@ async function addNextTrainingProgramItem() {
 }
 
 /* =========================
-   RENDER VERGANGENE TRAININGS
+   VERGANGENE TRAININGS
 ========================= */
 function renderLastTrainings() {
   const pastTrainings = getPastTrainings().slice(0, 3);
@@ -493,7 +485,7 @@ function renderLastTrainings() {
 }
 
 /* =========================
-   RENDER ALLE TRAININGS
+   ALLE TRAININGS
 ========================= */
 function createTrainingCard(training) {
   const card = document.createElement("div");
@@ -602,13 +594,12 @@ function renderAll() {
 }
 
 /* =========================
-   ADMIN FUNKTIONEN
+   ADMIN
 ========================= */
 function addProgramItem() {
   if (!isAdmin()) return;
 
   const text = programInput.value.trim();
-
   if (text === "") return;
 
   currentProgramItems.push({
@@ -624,7 +615,6 @@ function startEditingTraining(trainingId) {
   if (!isAdmin()) return;
 
   const training = trainings.find((item) => item.id === trainingId);
-
   if (!training) return;
 
   editingTrainingIdInput.value = training.id;
@@ -652,7 +642,6 @@ async function deleteTraining(trainingId) {
   if (!isAdmin()) return;
 
   const confirmed = window.confirm("Dieses Training wirklich löschen?");
-
   if (!confirmed) return;
 
   await deleteDoc(doc(db, TRAININGS_COLLECTION, trainingId));
@@ -718,7 +707,6 @@ async function saveTraining() {
 async function startFirestoreSync() {
   if (!db) {
     console.error("Firestore nicht verfügbar.");
-    alert("Firestore konnte nicht geladen werden.");
     return;
   }
 
@@ -745,7 +733,6 @@ async function startFirestoreSync() {
     },
     (error) => {
       console.error("Firestore Sync Fehler:", error);
-      alert("Fehler beim Laden der Firebase-Daten. Prüfe Firestore-Regeln.");
     }
   );
 }
@@ -753,7 +740,7 @@ async function startFirestoreSync() {
 /* =========================
    EVENTS
 ========================= */
-loginBtn.addEventListener("click", login);
+loginBtn.onclick = login;
 
 passwordInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") {
@@ -762,9 +749,15 @@ passwordInput.addEventListener("keydown", (event) => {
   }
 });
 
-logoutBtn.addEventListener("click", logout);
+usernameInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    login();
+  }
+});
 
-addProgramBtn.addEventListener("click", addProgramItem);
+logoutBtn.onclick = logout;
+addProgramBtn.onclick = addProgramItem;
 
 programInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") {
@@ -773,9 +766,9 @@ programInput.addEventListener("keydown", (event) => {
   }
 });
 
-addNextProgramBtn.addEventListener("click", async () => {
+addNextProgramBtn.onclick = async () => {
   await addNextTrainingProgramItem();
-});
+};
 
 nextProgramInput.addEventListener("keydown", async (event) => {
   if (event.key === "Enter") {
@@ -784,23 +777,23 @@ nextProgramInput.addEventListener("keydown", async (event) => {
   }
 });
 
-saveTrainingBtn.addEventListener("click", async () => {
+saveTrainingBtn.onclick = async () => {
   await saveTraining();
-});
+};
 
-cancelEditBtn.addEventListener("click", () => {
+cancelEditBtn.onclick = () => {
   resetForm();
-});
+};
 
-toggleLastTrainingsBtn.addEventListener("click", () => {
+toggleLastTrainingsBtn.onclick = () => {
   lastTrainingsWrapper.classList.toggle("hidden");
   renderToggleButtons();
-});
+};
 
-toggleAllTrainingsBtn.addEventListener("click", () => {
+toggleAllTrainingsBtn.onclick = () => {
   allTrainingsWrapper.classList.toggle("hidden");
   renderToggleButtons();
-});
+};
 
 /* =========================
    START
