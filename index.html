@@ -118,6 +118,28 @@
         </div>
       </section>
 
+      <section class="card" id="pdf-section">
+        <div class="section-header">
+          <h2>PDF Export</h2>
+        </div>
+
+        <div class="form-group">
+          <label for="pdf-from-date">Von</label>
+          <input type="date" id="pdf-from-date" />
+        </div>
+
+        <div class="form-group">
+          <label for="pdf-to-date">Bis</label>
+          <input type="date" id="pdf-to-date" />
+        </div>
+
+        <div class="button-row">
+          <button type="button" id="generate-pdf-btn">PDF generieren</button>
+        </div>
+
+        <p id="pdf-error" class="training-meta hidden"></p>
+      </section>
+
       <section class="card">
         <div class="section-header">
           <h2>Letzte 3 Trainings</h2>
@@ -146,25 +168,25 @@
     </div>
   </div>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-  import { getFirestore } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+    import { getFirestore } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyB6xOqPwAL59jJHDE-DEQXKRbtub3GVszE",
-    authDomain: "jugendriege-app.firebaseapp.com",
-    projectId: "jugendriege-app",
-    storageBucket: "jugendriege-app.firebasestorage.app",
-    messagingSenderId: "871508360233",
-    appId: "1:871508360233:web:1d49c529b9009065aa7038"
-  };
+    const firebaseConfig = {
+      apiKey: "AIzaSyB6xOqPwAL59jJHDE-DEQXKRbtub3GVszE",
+      authDomain: "jugendriege-app.firebaseapp.com",
+      projectId: "jugendriege-app",
+      storageBucket: "jugendriege-app.firebasestorage.app",
+      messagingSenderId: "871508360233",
+      appId: "1:871508360233:web:1d49c529b9009065aa7038"
+    };
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-  window.db = db;
+    window.db = db;
 
-  await import("./app.js");
-</script>
+    await import("./app.js");
+  </script>
 </body>
 </html>
