@@ -1,4 +1,15 @@
-const STORAGE_KEY = "trainings-app-data";
+import {
+  collection,
+  getDocs,
+  addDoc,
+  deleteDoc,
+  doc,
+  updateDoc,
+  onSnapshot
+} from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
+const db = window.db;
+const TRAININGS_COLLECTION = "trainings";
 
 const editingTrainingIdInput = document.getElementById("editing-training-id");
 const trainingDateInput = document.getElementById("training-date");
@@ -29,8 +40,9 @@ const allTrainingsWrapper = document.getElementById("all-trainings-wrapper");
 
 const leaderCheckboxes = document.querySelectorAll(".leader-checkbox");
 
-let trainings = loadTrainings();
+let trainings = [];
 let currentProgramItems = [];
+let isStartingFirestore = false;
 
 function parseLocalDate(dateString) {
   return new Date(`${dateString}T00:00:00`);
@@ -64,7 +76,7 @@ function normalizeProgram(program) {
 
 function normalizeTraining(training) {
   return {
-    id: training.id || Date.now().toString(),
+    id: training.id || "",
     date: training.date || "",
     status: training.status || "Findet statt",
     focus: (training.focus || "").trim(),
@@ -74,34 +86,6 @@ function normalizeTraining(training) {
       ? training.finalizedProgram.filter((item) => typeof item === "string" && item.trim() !== "")
       : []
   };
-}
-
-function loadTrainings() {
-  const savedTrainings = localStorage.getItem(STORAGE_KEY);
-
-  if (!savedTrainings) {
-    return [];
-  }
-
-  try {
-    const parsed = JSON.parse(savedTrainings);
-
-    if (!Array.isArray(parsed)) {
-      return [];
-    }
-
-    return parsed.map(normalizeTraining);
-  } catch (error) {
-    return [];
-  }
-}
-
-function saveTrainings() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(trainings));
-}
-
-function generateId() {
-  return Date.now().toString();
 }
 
 function formatDate(dateString) {
@@ -132,49 +116,36 @@ function getSortedTrainings() {
 }
 
 function isTrainingFinished(training) {
+  if (!training.date) return false;
   return new Date() >= getTrainingEndDateTime(training.date);
 }
 
-function finalizePastTrainingsIfNeeded() {
-  let hasChanged = false;
+async function updateTrainingInFirestore(trainingId, data) {
+  const ref = doc(db, TRAININGS_COLLECTION, trainingId);
+  await updateDoc(ref, data);
+}
 
-  trainings = trainings.map((training) => {
-    const normalized = normalizeTraining(training);
+async function finalizePastTrainingsIfNeeded() {
+  for (const training of trainings) {
+    if (!training.date) continue;
+    if (!isTrainingFinished(training)) continue;
+    if (training.finalizedProgram.length > 0) continue;
 
-    if (!normalized.date) {
-      return normalized;
-    }
-
-    if (!isTrainingFinished(normalized)) {
-      return normalized;
-    }
-
-    if (normalized.finalizedProgram.length > 0) {
-      return normalized;
-    }
-
-    normalized.finalizedProgram = normalized.program
+    const finalizedProgram = training.program
       .filter((item) => item.checked)
       .map((item) => item.text);
 
-    hasChanged = true;
-    return normalized;
-  });
-
-  if (hasChanged) {
-    saveTrainings();
+    await updateTrainingInFirestore(training.id, {
+      finalizedProgram
+    });
   }
 }
 
 function getUpcomingTrainings() {
-  finalizePastTrainingsIfNeeded();
-
   return getSortedTrainings().filter((training) => !isTrainingFinished(training));
 }
 
 function getPastTrainings() {
-  finalizePastTrainingsIfNeeded();
-
   return getSortedTrainings()
     .filter((training) => isTrainingFinished(training))
     .reverse();
@@ -277,28 +248,33 @@ function renderNextTraining() {
   });
 
   nextTrainingProgram.querySelectorAll("input[type='checkbox']").forEach((checkbox) => {
-    checkbox.addEventListener("change", (event) => {
-      toggleNextTrainingProgramItem(Number(event.target.dataset.index), event.target.checked);
+    checkbox.addEventListener("change", async (event) => {
+      await toggleNextTrainingProgramItem(Number(event.target.dataset.index), event.target.checked);
     });
   });
 }
 
-function toggleNextTrainingProgramItem(index, checked) {
+async function toggleNextTrainingProgramItem(index, checked) {
   const nextTraining = getNextTraining();
 
   if (!nextTraining) return;
 
-  const trainingIndex = trainings.findIndex((training) => training.id === nextTraining.id);
+  const updatedProgram = nextTraining.program.map((item, itemIndex) => {
+    if (itemIndex === index) {
+      return {
+        ...item,
+        checked
+      };
+    }
+    return item;
+  });
 
-  if (trainingIndex === -1) return;
-  if (!trainings[trainingIndex].program[index]) return;
-
-  trainings[trainingIndex].program[index].checked = checked;
-  saveTrainings();
-  renderAll();
+  await updateTrainingInFirestore(nextTraining.id, {
+    program: updatedProgram
+  });
 }
 
-function addNextTrainingProgramItem() {
+async function addNextTrainingProgramItem() {
   const text = nextProgramInput.value.trim();
   const nextTraining = getNextTraining();
 
@@ -306,20 +282,19 @@ function addNextTrainingProgramItem() {
     return;
   }
 
-  const trainingIndex = trainings.findIndex((training) => training.id === nextTraining.id);
+  const updatedProgram = [
+    ...nextTraining.program,
+    {
+      text,
+      checked: true
+    }
+  ];
 
-  if (trainingIndex === -1) {
-    return;
-  }
-
-  trainings[trainingIndex].program.push({
-    text,
-    checked: true
+  await updateTrainingInFirestore(nextTraining.id, {
+    program: updatedProgram
   });
 
-  saveTrainings();
   nextProgramInput.value = "";
-  renderAll();
 }
 
 function renderLastTrainings() {
@@ -387,9 +362,11 @@ function createTrainingCard(training) {
       : `<p class="training-meta"><strong>Leiter:</strong> Noch nicht gewählt</p>`;
 
   const programSource = isTrainingFinished(training)
-    ? (training.finalizedProgram.length > 0
-        ? training.finalizedProgram
-        : training.program.map((item) => item.text))
+    ? (
+        training.finalizedProgram.length > 0
+          ? training.finalizedProgram
+          : training.program.map((item) => item.text)
+      )
     : training.program.map((item) => item.text);
 
   const programHtml =
@@ -427,8 +404,8 @@ function attachTrainingCardEvents() {
   });
 
   document.querySelectorAll(".delete-training-btn").forEach((button) => {
-    button.addEventListener("click", () => {
-      deleteTraining(button.dataset.id);
+    button.addEventListener("click", async () => {
+      await deleteTraining(button.dataset.id);
     });
   });
 }
@@ -462,7 +439,6 @@ function renderToggleButtons() {
 }
 
 function renderAll() {
-  finalizePastTrainingsIfNeeded();
   renderProgramPreview();
   renderNextTraining();
   renderLastTrainings();
@@ -510,22 +486,19 @@ function startEditingTraining(trainingId) {
   });
 }
 
-function deleteTraining(trainingId) {
+async function deleteTraining(trainingId) {
   const confirmed = window.confirm("Dieses Training wirklich löschen?");
 
   if (!confirmed) return;
 
-  trainings = trainings.filter((training) => training.id !== trainingId);
-  saveTrainings();
+  await deleteDoc(doc(db, TRAININGS_COLLECTION, trainingId));
 
   if (editingTrainingIdInput.value === trainingId) {
     resetForm();
   }
-
-  renderAll();
 }
 
-function saveTraining() {
+async function saveTraining() {
   const date = trainingDateInput.value;
   const status = trainingStatusInput.value;
   const focus = trainingFocusInput.value.trim();
@@ -544,8 +517,9 @@ function saveTraining() {
     return;
   }
 
+  const existingId = editingTrainingIdInput.value;
+
   const trainingData = {
-    id: editingTrainingIdInput.value || generateId(),
     date,
     status,
     focus,
@@ -557,19 +531,50 @@ function saveTraining() {
     finalizedProgram: []
   };
 
-  const existingIndex = trainings.findIndex((training) => training.id === trainingData.id);
+  if (existingId) {
+    const existingTraining = trainings.find((training) => training.id === existingId);
+    const oldFinalizedProgram = existingTraining?.finalizedProgram || [];
 
-  if (existingIndex >= 0) {
-    const oldFinalizedProgram = trainings[existingIndex].finalizedProgram || [];
-    trainingData.finalizedProgram = oldFinalizedProgram;
-    trainings[existingIndex] = trainingData;
+    await updateTrainingInFirestore(existingId, {
+      ...trainingData,
+      finalizedProgram: oldFinalizedProgram
+    });
   } else {
-    trainings.push(trainingData);
+    await addDoc(collection(db, TRAININGS_COLLECTION), trainingData);
   }
 
-  saveTrainings();
   resetForm();
-  renderAll();
+}
+
+async function startFirestoreSync() {
+  if (!db) {
+    console.error("Firestore nicht verfügbar.");
+    alert("Firestore konnte nicht geladen werden.");
+    return;
+  }
+
+  if (isStartingFirestore) return;
+  isStartingFirestore = true;
+
+  onSnapshot(collection(db, TRAININGS_COLLECTION), async (snapshot) => {
+    trainings = snapshot.docs.map((item) =>
+      normalizeTraining({
+        id: item.id,
+        ...item.data()
+      })
+    );
+
+    renderAll();
+
+    try {
+      await finalizePastTrainingsIfNeeded();
+    } catch (error) {
+      console.error("Fehler beim Abschliessen vergangener Trainings:", error);
+    }
+  }, (error) => {
+    console.error("Firestore Sync Fehler:", error);
+    alert("Fehler beim Laden der Firebase-Daten. Prüfe Firestore-Regeln.");
+  });
 }
 
 addProgramBtn.addEventListener("click", addProgramItem);
@@ -581,16 +586,20 @@ programInput.addEventListener("keydown", (event) => {
   }
 });
 
-addNextProgramBtn.addEventListener("click", addNextTrainingProgramItem);
+addNextProgramBtn.addEventListener("click", async () => {
+  await addNextTrainingProgramItem();
+});
 
-nextProgramInput.addEventListener("keydown", (event) => {
+nextProgramInput.addEventListener("keydown", async (event) => {
   if (event.key === "Enter") {
     event.preventDefault();
-    addNextTrainingProgramItem();
+    await addNextTrainingProgramItem();
   }
 });
 
-saveTrainingBtn.addEventListener("click", saveTraining);
+saveTrainingBtn.addEventListener("click", async () => {
+  await saveTraining();
+});
 
 cancelEditBtn.addEventListener("click", () => {
   resetForm();
@@ -606,4 +615,4 @@ toggleAllTrainingsBtn.addEventListener("click", () => {
   renderToggleButtons();
 });
 
-renderAll();
+startFirestoreSync();
