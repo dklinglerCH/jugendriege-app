@@ -1,6 +1,5 @@
 import {
   collection,
-  getDocs,
   addDoc,
   deleteDoc,
   doc,
@@ -10,6 +9,33 @@ import {
 
 const db = window.db;
 const TRAININGS_COLLECTION = "trainings";
+
+/* =========================
+   LOGIN DATEN HIER ÄNDERN
+========================= */
+const ADMIN_USERNAME = "admin";
+const ADMIN_PASSWORD = "admin123";
+
+const TRAINER_USERNAME = "trainer";
+const TRAINER_PASSWORD = "trainer123";
+
+/* =========================
+   LOGIN ELEMENTE
+========================= */
+const loginCard = document.getElementById("login-card");
+const appContent = document.getElementById("app-content");
+const usernameInput = document.getElementById("username-input");
+const passwordInput = document.getElementById("password-input");
+const loginBtn = document.getElementById("login-btn");
+const logoutBtn = document.getElementById("logout-btn");
+const loginError = document.getElementById("login-error");
+const currentRoleText = document.getElementById("current-role");
+
+/* =========================
+   APP ELEMENTE
+========================= */
+const adminSection = document.getElementById("admin-section");
+const allTrainingsSection = document.getElementById("all-trainings-section");
 
 const editingTrainingIdInput = document.getElementById("editing-training-id");
 const trainingDateInput = document.getElementById("training-date");
@@ -28,6 +54,7 @@ const nextTrainingLeaders = document.getElementById("next-training-leaders");
 const nextTrainingProgram = document.getElementById("next-training-program");
 const nextProgramInput = document.getElementById("next-program-input");
 const addNextProgramBtn = document.getElementById("add-next-program-btn");
+const nextTrainingAddArea = document.getElementById("next-training-add-area");
 
 const lastTrainingsList = document.getElementById("last-trainings-list");
 const allTrainingsList = document.getElementById("all-trainings-list");
@@ -40,10 +67,104 @@ const allTrainingsWrapper = document.getElementById("all-trainings-wrapper");
 
 const leaderCheckboxes = document.querySelectorAll(".leader-checkbox");
 
+/* =========================
+   STATE
+========================= */
 let trainings = [];
 let currentProgramItems = [];
 let isStartingFirestore = false;
+let currentRole = localStorage.getItem("jr-role") || "";
 
+/* =========================
+   HILFSFUNKTIONEN LOGIN
+========================= */
+function isAdmin() {
+  return currentRole === "admin";
+}
+
+function isTrainer() {
+  return currentRole === "trainer";
+}
+
+function isLoggedIn() {
+  return isAdmin() || isTrainer();
+}
+
+function showLoginError(message) {
+  loginError.textContent = message;
+  loginError.classList.remove("hidden");
+}
+
+function hideLoginError() {
+  loginError.textContent = "";
+  loginError.classList.add("hidden");
+}
+
+function applyRoleUI() {
+  if (!isLoggedIn()) {
+    loginCard.classList.remove("hidden");
+    appContent.classList.add("hidden");
+    return;
+  }
+
+  loginCard.classList.add("hidden");
+  appContent.classList.remove("hidden");
+
+  if (isAdmin()) {
+    currentRoleText.textContent = "Eingeloggt als: Admin";
+    adminSection.classList.remove("hidden");
+    allTrainingsSection.classList.remove("hidden");
+    nextTrainingAddArea.classList.remove("hidden");
+  } else {
+    currentRoleText.textContent = "Eingeloggt als: Trainer";
+    adminSection.classList.add("hidden");
+    allTrainingsSection.classList.add("hidden");
+    nextTrainingAddArea.classList.remove("hidden");
+    resetForm();
+  }
+
+  renderAll();
+}
+
+function login() {
+  const username = usernameInput.value.trim();
+  const password = passwordInput.value;
+
+  hideLoginError();
+
+  if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+    currentRole = "admin";
+    localStorage.setItem("jr-role", currentRole);
+    usernameInput.value = "";
+    passwordInput.value = "";
+    applyRoleUI();
+    return;
+  }
+
+  if (username === TRAINER_USERNAME && password === TRAINER_PASSWORD) {
+    currentRole = "trainer";
+    localStorage.setItem("jr-role", currentRole);
+    usernameInput.value = "";
+    passwordInput.value = "";
+    applyRoleUI();
+    return;
+  }
+
+  showLoginError("Benutzername oder Passwort falsch.");
+}
+
+function logout() {
+  currentRole = "";
+  localStorage.removeItem("jr-role");
+  usernameInput.value = "";
+  passwordInput.value = "";
+  hideLoginError();
+  applyRoleUI();
+}
+
+/* =========================
+   DATUM / TRAINING HILFE
+========================= */
 function parseLocalDate(dateString) {
   return new Date(`${dateString}T00:00:00`);
 }
@@ -120,6 +241,24 @@ function isTrainingFinished(training) {
   return new Date() >= getTrainingEndDateTime(training.date);
 }
 
+function getUpcomingTrainings() {
+  return getSortedTrainings().filter((training) => !isTrainingFinished(training));
+}
+
+function getPastTrainings() {
+  return getSortedTrainings()
+    .filter((training) => isTrainingFinished(training))
+    .reverse();
+}
+
+function getNextTraining() {
+  const upcomingTrainings = getUpcomingTrainings();
+  return upcomingTrainings[0] || null;
+}
+
+/* =========================
+   FIRESTORE
+========================= */
 async function updateTrainingInFirestore(trainingId, data) {
   const ref = doc(db, TRAININGS_COLLECTION, trainingId);
   await updateDoc(ref, data);
@@ -141,16 +280,9 @@ async function finalizePastTrainingsIfNeeded() {
   }
 }
 
-function getUpcomingTrainings() {
-  return getSortedTrainings().filter((training) => !isTrainingFinished(training));
-}
-
-function getPastTrainings() {
-  return getSortedTrainings()
-    .filter((training) => isTrainingFinished(training))
-    .reverse();
-}
-
+/* =========================
+   RENDER FORM
+========================= */
 function resetForm() {
   editingTrainingIdInput.value = "";
   trainingDateInput.value = "";
@@ -187,6 +319,8 @@ function renderProgramPreview() {
 
   document.querySelectorAll(".remove-program-btn").forEach((button) => {
     button.addEventListener("click", () => {
+      if (!isAdmin()) return;
+
       const index = Number(button.dataset.index);
       currentProgramItems.splice(index, 1);
       renderProgramPreview();
@@ -194,11 +328,9 @@ function renderProgramPreview() {
   });
 }
 
-function getNextTraining() {
-  const upcomingTrainings = getUpcomingTrainings();
-  return upcomingTrainings[0] || null;
-}
-
+/* =========================
+   RENDER NÄCHSTES TRAINING
+========================= */
 function renderNextTraining() {
   const nextTraining = getNextTraining();
 
@@ -224,8 +356,8 @@ function renderNextTraining() {
       ? `Leiter: ${nextTraining.leaders.join(", ")}`
       : "Leiter: Noch nicht gewählt";
 
-  nextProgramInput.disabled = false;
-  addNextProgramBtn.disabled = false;
+  nextProgramInput.disabled = !isLoggedIn();
+  addNextProgramBtn.disabled = !isLoggedIn();
 
   nextTrainingProgram.innerHTML = "";
 
@@ -237,10 +369,12 @@ function renderNextTraining() {
   }
 
   nextTraining.program.forEach((item, index) => {
+    const disabledAttr = isLoggedIn() ? "" : "disabled";
+
     const li = document.createElement("li");
     li.innerHTML = `
       <label>
-        <input type="checkbox" data-index="${index}" ${item.checked ? "checked" : ""} />
+        <input type="checkbox" data-index="${index}" ${item.checked ? "checked" : ""} ${disabledAttr} />
         <span>${item.text}</span>
       </label>
     `;
@@ -249,7 +383,12 @@ function renderNextTraining() {
 
   nextTrainingProgram.querySelectorAll("input[type='checkbox']").forEach((checkbox) => {
     checkbox.addEventListener("change", async (event) => {
-      await toggleNextTrainingProgramItem(Number(event.target.dataset.index), event.target.checked);
+      if (!isLoggedIn()) return;
+
+      await toggleNextTrainingProgramItem(
+        Number(event.target.dataset.index),
+        event.target.checked
+      );
     });
   });
 }
@@ -275,6 +414,8 @@ async function toggleNextTrainingProgramItem(index, checked) {
 }
 
 async function addNextTrainingProgramItem() {
+  if (!isLoggedIn()) return;
+
   const text = nextProgramInput.value.trim();
   const nextTraining = getNextTraining();
 
@@ -297,6 +438,9 @@ async function addNextTrainingProgramItem() {
   nextProgramInput.value = "";
 }
 
+/* =========================
+   RENDER VERGANGENE TRAININGS
+========================= */
 function renderLastTrainings() {
   const pastTrainings = getPastTrainings().slice(0, 3);
 
@@ -348,6 +492,9 @@ function renderLastTrainings() {
   });
 }
 
+/* =========================
+   RENDER ALLE TRAININGS
+========================= */
 function createTrainingCard(training) {
   const card = document.createElement("div");
   card.className = "training-entry";
@@ -374,6 +521,15 @@ function createTrainingCard(training) {
       ? `<ul>${programSource.map((item) => `<li>${item}</li>`).join("")}</ul>`
       : `<p>Kein Programm vorhanden</p>`;
 
+  const actionButtons = isAdmin()
+    ? `
+      <div class="button-row">
+        <button type="button" class="edit-training-btn" data-id="${training.id}">Bearbeiten</button>
+        <button type="button" class="secondary delete-training-btn" data-id="${training.id}">Löschen</button>
+      </div>
+    `
+    : "";
+
   card.innerHTML = `
     <div class="training-entry-header">
       <h3>${formatDate(training.date)}</h3>
@@ -387,16 +543,15 @@ function createTrainingCard(training) {
       ${programHtml}
     </div>
 
-    <div class="button-row">
-      <button type="button" class="edit-training-btn" data-id="${training.id}">Bearbeiten</button>
-      <button type="button" class="secondary delete-training-btn" data-id="${training.id}">Löschen</button>
-    </div>
+    ${actionButtons}
   `;
 
   return card;
 }
 
 function attachTrainingCardEvents() {
+  if (!isAdmin()) return;
+
   document.querySelectorAll(".edit-training-btn").forEach((button) => {
     button.addEventListener("click", () => {
       startEditingTraining(button.dataset.id);
@@ -446,7 +601,12 @@ function renderAll() {
   renderToggleButtons();
 }
 
+/* =========================
+   ADMIN FUNKTIONEN
+========================= */
 function addProgramItem() {
+  if (!isAdmin()) return;
+
   const text = programInput.value.trim();
 
   if (text === "") return;
@@ -461,6 +621,8 @@ function addProgramItem() {
 }
 
 function startEditingTraining(trainingId) {
+  if (!isAdmin()) return;
+
   const training = trainings.find((item) => item.id === trainingId);
 
   if (!training) return;
@@ -487,6 +649,8 @@ function startEditingTraining(trainingId) {
 }
 
 async function deleteTraining(trainingId) {
+  if (!isAdmin()) return;
+
   const confirmed = window.confirm("Dieses Training wirklich löschen?");
 
   if (!confirmed) return;
@@ -499,6 +663,8 @@ async function deleteTraining(trainingId) {
 }
 
 async function saveTraining() {
+  if (!isAdmin()) return;
+
   const date = trainingDateInput.value;
   const status = trainingStatusInput.value;
   const focus = trainingFocusInput.value.trim();
@@ -546,6 +712,9 @@ async function saveTraining() {
   resetForm();
 }
 
+/* =========================
+   FIRESTORE SYNC
+========================= */
 async function startFirestoreSync() {
   if (!db) {
     console.error("Firestore nicht verfügbar.");
@@ -556,26 +725,44 @@ async function startFirestoreSync() {
   if (isStartingFirestore) return;
   isStartingFirestore = true;
 
-  onSnapshot(collection(db, TRAININGS_COLLECTION), async (snapshot) => {
-    trainings = snapshot.docs.map((item) =>
-      normalizeTraining({
-        id: item.id,
-        ...item.data()
-      })
-    );
+  onSnapshot(
+    collection(db, TRAININGS_COLLECTION),
+    async (snapshot) => {
+      trainings = snapshot.docs.map((item) =>
+        normalizeTraining({
+          id: item.id,
+          ...item.data()
+        })
+      );
 
-    renderAll();
+      renderAll();
 
-    try {
-      await finalizePastTrainingsIfNeeded();
-    } catch (error) {
-      console.error("Fehler beim Abschliessen vergangener Trainings:", error);
+      try {
+        await finalizePastTrainingsIfNeeded();
+      } catch (error) {
+        console.error("Fehler beim Abschliessen vergangener Trainings:", error);
+      }
+    },
+    (error) => {
+      console.error("Firestore Sync Fehler:", error);
+      alert("Fehler beim Laden der Firebase-Daten. Prüfe Firestore-Regeln.");
     }
-  }, (error) => {
-    console.error("Firestore Sync Fehler:", error);
-    alert("Fehler beim Laden der Firebase-Daten. Prüfe Firestore-Regeln.");
-  });
+  );
 }
+
+/* =========================
+   EVENTS
+========================= */
+loginBtn.addEventListener("click", login);
+
+passwordInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    login();
+  }
+});
+
+logoutBtn.addEventListener("click", logout);
 
 addProgramBtn.addEventListener("click", addProgramItem);
 
@@ -615,4 +802,8 @@ toggleAllTrainingsBtn.addEventListener("click", () => {
   renderToggleButtons();
 });
 
+/* =========================
+   START
+========================= */
+applyRoleUI();
 startFirestoreSync();
