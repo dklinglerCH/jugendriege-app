@@ -13,110 +13,137 @@
       <p class="subtitle">Trainingsübersicht</p>
     </header>
 
-    <section class="card">
-      <h2>Nächstes Training</h2>
-
-      <div id="next-training-box">
-        <p id="next-training-date">Noch kein Training geplant</p>
-        <p id="next-training-status" class="training-meta"></p>
-        <p id="next-training-focus" class="training-meta"></p>
-        <p id="next-training-leaders" class="training-meta"></p>
-
-        <div class="next-training-program-block">
-          <p class="section-label">Programm</p>
-          <ul id="next-training-program" class="program-checklist"></ul>
-        </div>
-
-        <div class="add-row next-training-add-row">
-          <input
-            type="text"
-            id="next-program-input"
-            placeholder="Programmpunkt fürs nächste Training ergänzen"
-          />
-          <button type="button" id="add-next-program-btn">Hinzufügen</button>
-        </div>
-      </div>
-    </section>
-
-    <section class="card">
-      <div class="section-header">
-        <h2>Training planen</h2>
-      </div>
-
-      <input type="hidden" id="editing-training-id" />
+    <section class="card" id="login-card">
+      <h2>Login</h2>
 
       <div class="form-group">
-        <label for="training-date">Datum</label>
-        <input type="date" id="training-date" />
+        <label for="username-input">Benutzername</label>
+        <input type="text" id="username-input" placeholder="admin oder trainer" />
       </div>
 
       <div class="form-group">
-        <label for="training-status">Status</label>
-        <select id="training-status">
-          <option value="Findet statt">Findet statt</option>
-          <option value="Fällt aus">Fällt aus</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label for="training-focus">Fokus</label>
-        <input type="text" id="training-focus" placeholder="z. B. LA, Getu, Spiele" />
-      </div>
-
-      <div class="form-group">
-        <label>Leiter im Training</label>
-        <div class="leaders-select">
-          <label><input type="checkbox" class="leader-checkbox" value="Damian" /> Damian</label>
-          <label><input type="checkbox" class="leader-checkbox" value="Selina" /> Selina</label>
-          <label><input type="checkbox" class="leader-checkbox" value="Svenja" /> Svenja</label>
-          <label><input type="checkbox" class="leader-checkbox" value="Noel" /> Noel</label>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label for="program-input">Programmpunkt</label>
-        <div class="add-row">
-          <input type="text" id="program-input" placeholder="z. B. Einwärmen" />
-          <button type="button" id="add-program-btn">Hinzufügen</button>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label>Geplantes Programm</label>
-        <ul class="checklist" id="program-preview-list"></ul>
+        <label for="password-input">Passwort</label>
+        <input type="password" id="password-input" placeholder="Passwort" />
       </div>
 
       <div class="button-row">
-        <button type="button" id="save-training-btn">Training speichern</button>
-        <button type="button" id="cancel-edit-btn" class="secondary hidden">Bearbeiten abbrechen</button>
+        <button type="button" id="login-btn">Einloggen</button>
       </div>
+
+      <p id="login-error" class="training-meta hidden"></p>
     </section>
 
-    <section class="card">
-      <div class="section-header">
-        <h2>Letzte 3 Trainings</h2>
-        <button type="button" id="toggle-last-trainings-btn" class="secondary small-btn">
-          Einklappen
-        </button>
-      </div>
+    <div id="app-content" class="hidden">
+      <section class="card">
+        <div class="section-header">
+          <h2>Nächstes Training</h2>
+          <button type="button" id="logout-btn" class="secondary small-btn">Logout</button>
+        </div>
 
-      <div id="last-trainings-wrapper">
-        <ul id="last-trainings-list"></ul>
-      </div>
-    </section>
+        <p id="current-role" class="training-meta"></p>
 
-    <section class="card">
-      <div class="section-header">
-        <h2>Alle Trainings</h2>
-        <button type="button" id="toggle-all-trainings-btn" class="secondary small-btn">
-          Anzeigen
-        </button>
-      </div>
+        <div id="next-training-box">
+          <p id="next-training-date">Noch kein Training geplant</p>
+          <p id="next-training-status" class="training-meta"></p>
+          <p id="next-training-focus" class="training-meta"></p>
+          <p id="next-training-leaders" class="training-meta"></p>
 
-      <div id="all-trainings-wrapper" class="hidden">
-        <div id="all-trainings-list"></div>
-      </div>
-    </section>
+          <div class="next-training-program-block">
+            <p class="section-label">Programm</p>
+            <ul id="next-training-program" class="program-checklist"></ul>
+          </div>
+
+          <div class="add-row next-training-add-row" id="next-training-add-area">
+            <input
+              type="text"
+              id="next-program-input"
+              placeholder="Programmpunkt fürs nächste Training ergänzen"
+            />
+            <button type="button" id="add-next-program-btn">Hinzufügen</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" id="admin-section">
+        <div class="section-header">
+          <h2>Training planen</h2>
+        </div>
+
+        <input type="hidden" id="editing-training-id" />
+
+        <div class="form-group">
+          <label for="training-date">Datum</label>
+          <input type="date" id="training-date" />
+        </div>
+
+        <div class="form-group">
+          <label for="training-status">Status</label>
+          <select id="training-status">
+            <option value="Findet statt">Findet statt</option>
+            <option value="Fällt aus">Fällt aus</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="training-focus">Fokus</label>
+          <input type="text" id="training-focus" placeholder="z. B. LA, Getu, Spiele" />
+        </div>
+
+        <div class="form-group">
+          <label>Leiter im Training</label>
+          <div class="leaders-select">
+            <label><input type="checkbox" class="leader-checkbox" value="Damian" /> Damian</label>
+            <label><input type="checkbox" class="leader-checkbox" value="Selina" /> Selina</label>
+            <label><input type="checkbox" class="leader-checkbox" value="Svenja" /> Svenja</label>
+            <label><input type="checkbox" class="leader-checkbox" value="Noel" /> Noel</label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="program-input">Programmpunkt</label>
+          <div class="add-row">
+            <input type="text" id="program-input" placeholder="z. B. Einwärmen" />
+            <button type="button" id="add-program-btn">Hinzufügen</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Geplantes Programm</label>
+          <ul class="checklist" id="program-preview-list"></ul>
+        </div>
+
+        <div class="button-row">
+          <button type="button" id="save-training-btn">Training speichern</button>
+          <button type="button" id="cancel-edit-btn" class="secondary hidden">Bearbeiten abbrechen</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="section-header">
+          <h2>Letzte 3 Trainings</h2>
+          <button type="button" id="toggle-last-trainings-btn" class="secondary small-btn">
+            Einklappen
+          </button>
+        </div>
+
+        <div id="last-trainings-wrapper">
+          <ul id="last-trainings-list"></ul>
+        </div>
+      </section>
+
+      <section class="card" id="all-trainings-section">
+        <div class="section-header">
+          <h2>Alle Trainings</h2>
+          <button type="button" id="toggle-all-trainings-btn" class="secondary small-btn">
+            Anzeigen
+          </button>
+        </div>
+
+        <div id="all-trainings-wrapper" class="hidden">
+          <div id="all-trainings-list"></div>
+        </div>
+      </section>
+    </div>
   </div>
 
   <script type="module">
