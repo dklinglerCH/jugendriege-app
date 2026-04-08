@@ -65,6 +65,13 @@ const lastTrainingsWrapper = document.getElementById("last-trainings-wrapper");
 const toggleAllTrainingsBtn = document.getElementById("toggle-all-trainings-btn");
 const allTrainingsWrapper = document.getElementById("all-trainings-wrapper");
 
+const togglePdfBtn = document.getElementById("toggle-pdf-btn");
+const pdfWrapper = document.getElementById("pdf-wrapper");
+const pdfFromDateInput = document.getElementById("pdf-from-date");
+const pdfToDateInput = document.getElementById("pdf-to-date");
+const generatePdfBtn = document.getElementById("generate-pdf-btn");
+const pdfError = document.getElementById("pdf-error");
+
 const leaderCheckboxes = document.querySelectorAll(".leader-checkbox");
 
 /* =========================
@@ -115,11 +122,14 @@ function applyRoleUI() {
     adminSection.classList.remove("hidden");
     allTrainingsSection.classList.remove("hidden");
     nextTrainingAddArea.classList.remove("hidden");
+    if (togglePdfBtn) togglePdfBtn.classList.remove("hidden");
   } else {
     currentRoleText.textContent = "Eingeloggt als: Trainer";
     adminSection.classList.add("hidden");
     allTrainingsSection.classList.add("hidden");
     nextTrainingAddArea.classList.remove("hidden");
+    if (pdfWrapper) pdfWrapper.classList.add("hidden");
+    if (togglePdfBtn) togglePdfBtn.classList.add("hidden");
     resetForm();
   }
 
@@ -159,6 +169,8 @@ function logout() {
   usernameInput.value = "";
   passwordInput.value = "";
   hideLoginError();
+  if (pdfWrapper) pdfWrapper.classList.add("hidden");
+  hidePdfError();
   applyRoleUI();
 }
 
@@ -214,6 +226,16 @@ function formatDate(dateString) {
 
   return parseLocalDate(dateString).toLocaleDateString("de-CH", {
     weekday: "long",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric"
+  });
+}
+
+function formatDateShort(dateString) {
+  if (!dateString) return "";
+
+  return parseLocalDate(dateString).toLocaleDateString("de-CH", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric"
@@ -702,6 +724,172 @@ async function saveTraining() {
 }
 
 /* =========================
+   PDF
+========================= */
+function showPdfError(message) {
+  pdfError.textContent = message;
+  pdfError.classList.remove("hidden");
+}
+
+function hidePdfError() {
+  pdfError.textContent = "";
+  pdfError.classList.add("hidden");
+}
+
+function getTrainingsInRange(fromDate, toDate) {
+  return getSortedTrainings().filter((training) => {
+    return training.date >= fromDate && training.date <= toDate;
+  });
+}
+
+function getAllFridaysInRange(fromDate, toDate) {
+  const result = [];
+  const current = parseLocalDate(fromDate);
+  const end = parseLocalDate(toDate);
+
+  while (current.getDay() !== 5) {
+    current.setDate(current.getDate() + 1);
+  }
+
+  while (current <= end) {
+    result.push(current.toISOString().slice(0, 10));
+    current.setDate(current.getDate() + 7);
+  }
+
+  return result;
+}
+
+function getMissingFridays(fromDate, toDate, trainingsInRange) {
+  const allFridays = getAllFridaysInRange(fromDate, toDate);
+  const existingDates = new Set(trainingsInRange.map((training) => training.date));
+
+  return allFridays.filter((date) => !existingDates.has(date));
+}
+
+function buildTrainingPdfLines(training) {
+  const lines = [];
+
+  lines.push(`Datum: ${formatDate(training.date)}`);
+  lines.push(`Status: ${training.status}`);
+  lines.push(`Fokus: ${training.focus || "-"}`);
+  lines.push(`Leiter: ${training.leaders.length > 0 ? training.leaders.join(", ") : "-"}`);
+
+  const programSource = isTrainingFinished(training)
+    ? (
+        training.finalizedProgram.length > 0
+          ? training.finalizedProgram
+          : training.program.map((item) => item.text)
+      )
+    : training.program.map((item) => item.text);
+
+  if (programSource.length === 0) {
+    lines.push("Programm: -");
+  } else {
+    lines.push("Programm:");
+    programSource.forEach((item) => {
+      lines.push(`- ${item}`);
+    });
+  }
+
+  lines.push("");
+  return lines;
+}
+
+async function generatePdf() {
+  if (!isAdmin()) return;
+
+  hidePdfError();
+
+  const fromDate = pdfFromDateInput.value;
+  const toDate = pdfToDateInput.value;
+
+  if (!fromDate || !toDate) {
+    showPdfError("Bitte Von- und Bis-Datum auswählen.");
+    return;
+  }
+
+  if (fromDate > toDate) {
+    showPdfError("Das Von-Datum muss vor dem Bis-Datum liegen.");
+    return;
+  }
+
+  const trainingsInRange = getTrainingsInRange(fromDate, toDate);
+  const missingFridays = getMissingFridays(fromDate, toDate, trainingsInRange);
+
+  const { jsPDF } = await import("https://cdnjs.cloudflare.com/ajax/libs/jspdf/3.0.3/jspdf.es.js");
+
+  const doc = new jsPDF({
+    orientation: "p",
+    unit: "mm",
+    format: "a4"
+  });
+
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+
+  const marginLeft = 14;
+  const marginRight = 14;
+  const maxWidth = pageWidth - marginLeft - marginRight;
+  const lineHeight = 5;
+
+  let y = 16;
+
+  function ensureSpace(linesNeeded = 1) {
+    const neededHeight = linesNeeded * lineHeight;
+    if (y + neededHeight > pageHeight - 15) {
+      doc.addPage();
+      y = 16;
+    }
+  }
+
+  function addWrappedText(text, fontSize = 10, isBold = false, extraGap = 0) {
+    doc.setFont("helvetica", isBold ? "bold" : "normal");
+    doc.setFontSize(fontSize);
+
+    const wrapped = doc.splitTextToSize(text, maxWidth);
+    ensureSpace(wrapped.length);
+
+    doc.text(wrapped, marginLeft, y);
+    y += wrapped.length * lineHeight + extraGap;
+  }
+
+  addWrappedText("Jugendriege Glattfelden – Trainingsübersicht", 14, true, 2);
+  addWrappedText(`Zeitraum: ${formatDateShort(fromDate)} bis ${formatDateShort(toDate)}`, 10, false, 3);
+
+  const missingText =
+    missingFridays.length > 0
+      ? missingFridays.map((date) => formatDateShort(date)).join(", ")
+      : "Keine";
+
+  addWrappedText(`Fehlende Freitage ohne Eintrag: ${missingText}`, 10, true, 4);
+
+  if (trainingsInRange.length === 0) {
+    addWrappedText("Keine Trainings im gewählten Zeitraum vorhanden.", 11, false, 0);
+  } else {
+    trainingsInRange.forEach((training, index) => {
+      const lines = buildTrainingPdfLines(training);
+
+      ensureSpace(lines.length + 2);
+      addWrappedText(`Training ${index + 1}`, 11, true, 1);
+
+      lines.forEach((line) => {
+        if (line === "") {
+          y += 2;
+        } else {
+          addWrappedText(line, 10, false, 0);
+        }
+      });
+
+      y += 2;
+    });
+  }
+
+  const blob = doc.output("blob");
+  const url = URL.createObjectURL(blob);
+  window.open(url, "_blank");
+}
+
+/* =========================
    FIRESTORE SYNC
 ========================= */
 async function startFirestoreSync() {
@@ -794,6 +982,19 @@ toggleAllTrainingsBtn.onclick = () => {
   allTrainingsWrapper.classList.toggle("hidden");
   renderToggleButtons();
 };
+
+if (togglePdfBtn) {
+  togglePdfBtn.onclick = () => {
+    pdfWrapper.classList.toggle("hidden");
+    hidePdfError();
+  };
+}
+
+if (generatePdfBtn) {
+  generatePdfBtn.onclick = async () => {
+    await generatePdf();
+  };
+}
 
 /* =========================
    START
