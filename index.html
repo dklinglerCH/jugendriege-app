@@ -146,25 +146,25 @@
     </div>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-    import { getFirestore } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+  import { getFirestore } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyB6xOqPwAL59jJHDE-DEQXKRbtub3GVszE",
-      authDomain: "jugendriege-app.firebaseapp.com",
-      projectId: "jugendriege-app",
-      storageBucket: "jugendriege-app.firebasestorage.app",
-      messagingSenderId: "871508360233",
-      appId: "1:871508360233:web:1d49c529b9009065aa7038"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyB6xOqPwAL59jJHDE-DEQXKRbtub3GVszE",
+    authDomain: "jugendriege-app.firebaseapp.com",
+    projectId: "jugendriege-app",
+    storageBucket: "jugendriege-app.firebasestorage.app",
+    messagingSenderId: "871508360233",
+    appId: "1:871508360233:web:1d49c529b9009065aa7038"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-    window.db = db;
-  </script>
+  window.db = db;
 
-  <script type="module" src="app.js"></script>
+  await import("./app.js");
+</script>
 </body>
 </html>
