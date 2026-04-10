@@ -324,14 +324,7 @@ function renderLastTrainings() {
     const leadersText = training.leaders.length ? `Leiter: ${training.leaders.join(", ")}` : "Leiter: Noch nicht gewählt";
     const finalProgram = training.finalizedProgram.length ? training.finalizedProgram : training.program.map(item => item.text);
     const programHtml = finalProgram.length ? `<ul>${finalProgram.map(item => `<li>${item}</li>`).join("")}</ul>` : `<p>Kein Programm vorhanden</p>`;
-    li.innerHTML = `
-      <div>
-        <strong>${formatDate(training.date)}</strong>
-        <p class="training-meta">Status: ${training.status}</p>
-        <p class="training-meta">${focusText}</p>
-        <p class="training-meta">${leadersText}</p>
-        <div><strong>Programm</strong>${programHtml}</div>
-      </div>`;
+    li.innerHTML = `<div><strong>${formatDate(training.date)}</strong><p class="training-meta">Status: ${training.status}</p><p class="training-meta">${focusText}</p><p class="training-meta">${leadersText}</p><div><strong>Programm</strong>${programHtml}</div></div>`;
     lastTrainingsList.appendChild(li);
   });
 }
@@ -347,18 +340,7 @@ function createTrainingCard(training) {
   const programSource = isTrainingFinished(training) && training.finalizedProgram.length ? training.finalizedProgram : training.program.map(item => item.text);
   const programHtml = programSource.length ? `<ul>${programSource.map(item => `<li>${item}</li>`).join("")}</ul>` : `<p>Kein Programm vorhanden</p>`;
   const actionButtons = isAdmin() ? `<div class="button-row"><button type="button" class="edit-training-btn" data-id="${training.id}">Bearbeiten</button><button type="button" class="secondary delete-training-btn" data-id="${training.id}">Löschen</button></div>` : "";
-  card.innerHTML = `
-    <div class="training-entry-header">
-      <h3>${formatDate(training.date)}</h3>
-      <p class="training-meta">Status: ${training.status}</p>
-      ${focusHtml}
-      ${leadersHtml}
-    </div>
-    <div class="training-entry-program">
-      <strong>Programm</strong>
-      ${programHtml}
-    </div>
-    ${actionButtons}`;
+  card.innerHTML = `<div class="training-entry-header"><h3>${formatDate(training.date)}</h3><p class="training-meta">Status: ${training.status}</p>${focusHtml}${leadersHtml}</div><div class="training-entry-program"><strong>Programm</strong>${programHtml}</div>${actionButtons}`;
   return card;
 }
 function attachTrainingCardEvents() {
@@ -437,7 +419,7 @@ async function saveTraining() {
 }
 
 /* =========================
-   PDF (TABELLE)
+   PDF – NEUE TABELLEN-VERSION
 ========================= */
 function showPdfError(message) {
   pdfError.textContent = message;
@@ -470,6 +452,7 @@ function getMissingFridays(fromDate, toDate, trainingsInRange) {
 async function generatePdf() {
   if (!isAdmin()) return;
   hidePdfError();
+
   const fromDate = pdfFromDateInput.value;
   const toDate = pdfToDateInput.value;
   if (!fromDate || !toDate) return showPdfError("Bitte Von- und Bis-Datum auswählen.");
@@ -546,7 +529,7 @@ async function generatePdf() {
 }
 
 /* =========================
-   FIRESTORE SYNC + EVENTS + START
+   FIRESTORE SYNC
 ========================= */
 async function startFirestoreSync() {
   if (!db || isStartingFirestore) return;
@@ -558,6 +541,9 @@ async function startFirestoreSync() {
   }, console.error);
 }
 
+/* =========================
+   EVENTS
+========================= */
 loginBtn.onclick = login;
 passwordInput.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); login(); } });
 usernameInput.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); login(); } });
@@ -573,5 +559,8 @@ toggleAllTrainingsBtn.onclick = () => { allTrainingsWrapper.classList.toggle("hi
 if (togglePdfBtn) togglePdfBtn.onclick = () => { pdfWrapper.classList.toggle("hidden"); hidePdfError(); };
 if (generatePdfBtn) generatePdfBtn.onclick = () => generatePdf();
 
+/* =========================
+   START
+========================= */
 applyRoleUI();
 startFirestoreSync();
