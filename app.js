@@ -561,7 +561,7 @@ async function generatePdf() {
   }
 
   // === DATEINAME + DOWNLOAD ===
-  const fileName = `THB_Jugi_Gross_TVG_${fromDate}-${toDate}.pdf`;
+  const fileName = `THB_Jugi_Gross_TVG_${fromDate}_bis_${toDate}.pdf`;
   doc.save(fileName);        // ← Das löst den Download mit dem gewünschten Namen aus
 }
 
