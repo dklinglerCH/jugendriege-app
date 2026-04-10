@@ -13,7 +13,7 @@ const TRAININGS_COLLECTION = "trainings";
 /* =========================
    LOGIN DATEN HIER ÄNDERN
 ========================= */
-const ADMIN_USERNAME = "Admin";
+const ADMIN_USERNAME = "Administrator";
 const ADMIN_PASSWORD = "tvg_admin";
 const TRAINER_USERNAME = "Trainer";
 const TRAINER_PASSWORD = "tvg_trainer";
