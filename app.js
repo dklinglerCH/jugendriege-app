@@ -11,7 +11,7 @@ const db = window.db;
 const TRAININGS_COLLECTION = "trainings";
 
 /* =========================
-   LOGIN DATEN
+   LOGIN DATEN HIER ÄNDERN
 ========================= */
 const ADMIN_USERNAME = "Administrator";
 const ADMIN_PASSWORD = "tvg_admin";
@@ -19,7 +19,7 @@ const TRAINER_USERNAME = "Trainer";
 const TRAINER_PASSWORD = "tvg_trainer";
 
 /* =========================
-   ELEMENTE
+   LOGIN ELEMENTE
 ========================= */
 const loginCard = document.getElementById("login-card");
 const appContent = document.getElementById("app-content");
@@ -30,6 +30,9 @@ const logoutBtn = document.getElementById("logout-btn");
 const loginError = document.getElementById("login-error");
 const currentRoleText = document.getElementById("current-role");
 
+/* =========================
+   APP ELEMENTE
+========================= */
 const adminSection = document.getElementById("admin-section");
 const allTrainingsSection = document.getElementById("all-trainings-section");
 const editingTrainingIdInput = document.getElementById("editing-training-id");
@@ -41,7 +44,6 @@ const addProgramBtn = document.getElementById("add-program-btn");
 const programPreviewList = document.getElementById("program-preview-list");
 const saveTrainingBtn = document.getElementById("save-training-btn");
 const cancelEditBtn = document.getElementById("cancel-edit-btn");
-
 const nextTrainingDate = document.getElementById("next-training-date");
 const nextTrainingStatus = document.getElementById("next-training-status");
 const nextTrainingFocus = document.getElementById("next-training-focus");
@@ -50,23 +52,19 @@ const nextTrainingProgram = document.getElementById("next-training-program");
 const nextProgramInput = document.getElementById("next-program-input");
 const addNextProgramBtn = document.getElementById("add-next-program-btn");
 const nextTrainingAddArea = document.getElementById("next-training-add-area");
-
 const lastTrainingsList = document.getElementById("last-trainings-list");
 const allTrainingsList = document.getElementById("all-trainings-list");
 const toggleLastTrainingsBtn = document.getElementById("toggle-last-trainings-btn");
 const lastTrainingsWrapper = document.getElementById("last-trainings-wrapper");
 const toggleAllTrainingsBtn = document.getElementById("toggle-all-trainings-btn");
 const allTrainingsWrapper = document.getElementById("all-trainings-wrapper");
-
 const togglePdfBtn = document.getElementById("toggle-pdf-btn");
 const pdfWrapper = document.getElementById("pdf-wrapper");
 const pdfFromDateInput = document.getElementById("pdf-from-date");
 const pdfToDateInput = document.getElementById("pdf-to-date");
 const generatePdfBtn = document.getElementById("generate-pdf-btn");
 const pdfError = document.getElementById("pdf-error");
-
 const leaderCheckboxes = document.querySelectorAll(".leader-checkbox");
-const loadingOverlay = document.getElementById("loading-overlay");
 
 /* =========================
    STATE
@@ -82,7 +80,6 @@ let currentRole = localStorage.getItem("jr-role") || "";
 function isAdmin() { return currentRole === "admin"; }
 function isTrainer() { return currentRole === "trainer"; }
 function isLoggedIn() { return isAdmin() || isTrainer(); }
-
 function showLoginError(message) {
   loginError.textContent = message;
   loginError.classList.remove("hidden");
@@ -91,7 +88,6 @@ function hideLoginError() {
   loginError.textContent = "";
   loginError.classList.add("hidden");
 }
-
 function applyRoleUI() {
   if (!isLoggedIn()) {
     loginCard.classList.remove("hidden");
@@ -100,19 +96,23 @@ function applyRoleUI() {
   }
   loginCard.classList.add("hidden");
   appContent.classList.remove("hidden");
-
   if (isAdmin()) {
     currentRoleText.textContent = "Eingeloggt als: Admin";
     adminSection.classList.remove("hidden");
     allTrainingsSection.classList.remove("hidden");
+    nextTrainingAddArea.classList.remove("hidden");
+    if (togglePdfBtn) togglePdfBtn.classList.remove("hidden");
   } else {
     currentRoleText.textContent = "Eingeloggt als: Trainer";
     adminSection.classList.add("hidden");
     allTrainingsSection.classList.add("hidden");
+    nextTrainingAddArea.classList.remove("hidden");
+    if (pdfWrapper) pdfWrapper.classList.add("hidden");
+    if (togglePdfBtn) togglePdfBtn.classList.add("hidden");
+    resetForm();
   }
   renderAll();
 }
-
 function login() {
   const username = usernameSelect.value;
   const password = passwordInput.value;
@@ -120,28 +120,32 @@ function login() {
 
   if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
     currentRole = "admin";
-  } else if (username === TRAINER_USERNAME && password === TRAINER_PASSWORD) {
-    currentRole = "trainer";
-  } else {
-    showLoginError("Benutzername oder Passwort falsch.");
+    localStorage.setItem("jr-role", currentRole);
+    passwordInput.value = "";
+    applyRoleUI();
     return;
   }
-
-  localStorage.setItem("jr-role", currentRole);
-  passwordInput.value = "";
-  applyRoleUI();
+  if (username === TRAINER_USERNAME && password === TRAINER_PASSWORD) {
+    currentRole = "trainer";
+    localStorage.setItem("jr-role", currentRole);
+    passwordInput.value = "";
+    applyRoleUI();
+    return;
+  }
+  showLoginError("Benutzername oder Passwort falsch.");
 }
-
 function logout() {
   currentRole = "";
   localStorage.removeItem("jr-role");
   passwordInput.value = "";
   hideLoginError();
+  if (pdfWrapper) pdfWrapper.classList.add("hidden");
+  hidePdfError();
   applyRoleUI();
 }
 
 /* =========================
-   HILFSFUNKTIONEN
+   TRAINING HILFSFUNKTIONEN
 ========================= */
 function parseLocalDate(dateString) {
   return new Date(`${dateString}T00:00:00`);
@@ -228,7 +232,6 @@ function resetForm() {
   cancelEditBtn.classList.add("hidden");
   renderProgramPreview();
 }
-
 function renderProgramPreview() {
   programPreviewList.innerHTML = "";
   if (currentProgramItems.length === 0) {
@@ -305,7 +308,7 @@ async function addNextTrainingProgramItem() {
 }
 
 /* =========================
-   VERGANGENE + ALLE TRAININGS
+   VERGANGENE TRAININGS
 ========================= */
 function renderLastTrainings() {
   const pastTrainings = getPastTrainings().slice(0, 3);
@@ -327,6 +330,9 @@ function renderLastTrainings() {
   });
 }
 
+/* =========================
+   ALLE TRAININGS
+========================= */
 function createTrainingCard(training) {
   const card = document.createElement("div");
   card.className = "training-entry";
@@ -338,25 +344,21 @@ function createTrainingCard(training) {
   card.innerHTML = `<div class="training-entry-header"><h3>${formatDate(training.date)}</h3><p class="training-meta">Status: ${training.status}</p>${focusHtml}${leadersHtml}</div><div class="training-entry-program"><strong>Programm</strong>${programHtml}</div>${actionButtons}`;
   return card;
 }
-
 function attachTrainingCardEvents() {
   if (!isAdmin()) return;
   document.querySelectorAll(".edit-training-btn").forEach(btn => btn.addEventListener("click", () => startEditingTraining(btn.dataset.id)));
   document.querySelectorAll(".delete-training-btn").forEach(btn => btn.addEventListener("click", () => deleteTraining(btn.dataset.id)));
 }
-
 function renderAllTrainings() {
   const sorted = getSortedTrainings().reverse();
   allTrainingsList.innerHTML = sorted.length ? "" : "<p>Noch keine Trainings erfasst.</p>";
   sorted.forEach(training => allTrainingsList.appendChild(createTrainingCard(training)));
   attachTrainingCardEvents();
 }
-
 function renderToggleButtons() {
   toggleLastTrainingsBtn.textContent = lastTrainingsWrapper.classList.contains("hidden") ? "Anzeigen" : "Einklappen";
   toggleAllTrainingsBtn.textContent = allTrainingsWrapper.classList.contains("hidden") ? "Anzeigen" : "Einklappen";
 }
-
 function renderAll() {
   renderProgramPreview();
   renderNextTraining();
@@ -364,7 +366,6 @@ function renderAll() {
   renderAllTrainings();
   renderToggleButtons();
 }
-
 function addProgramItem() {
   if (!isAdmin()) return;
   const text = programInput.value.trim();
@@ -373,7 +374,6 @@ function addProgramItem() {
   programInput.value = "";
   renderProgramPreview();
 }
-
 function startEditingTraining(trainingId) {
   if (!isAdmin()) return;
   const training = trainings.find(t => t.id === trainingId);
@@ -389,14 +389,12 @@ function startEditingTraining(trainingId) {
   renderProgramPreview();
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
-
 async function deleteTraining(trainingId) {
   if (!isAdmin()) return;
   if (!confirm("Dieses Training wirklich löschen?")) return;
   await deleteDoc(doc(db, TRAININGS_COLLECTION, trainingId));
   if (editingTrainingIdInput.value === trainingId) resetForm();
 }
-
 async function saveTraining() {
   if (!isAdmin()) return;
   const date = trainingDateInput.value;
@@ -422,7 +420,7 @@ async function saveTraining() {
 }
 
 /* =========================
-   PDF
+   PDF – NEUE TABELLEN-VERSION
 ========================= */
 function showPdfError(message) {
   pdfError.textContent = message;
@@ -431,6 +429,31 @@ function showPdfError(message) {
 function hidePdfError() {
   pdfError.textContent = "";
   pdfError.classList.add("hidden");
+}
+function getTrainingsInRange(fromDate, toDate) {
+  return getSortedTrainings().filter(t => t.date >= fromDate && t.date <= toDate);
+}
+function getAllFridaysInRange(fromDate, toDate) {
+  const result = [];
+  // Mit Mittagszeit arbeiten → verhindert Zeitzonen-Verschiebungen
+  let current = new Date(fromDate + "T12:00:00");
+  const end = new Date(toDate + "T12:00:00");
+
+  // Zum ersten Freitag springen
+  const day = current.getDay();
+  const daysUntilFriday = (5 - day + 7) % 7;
+  current.setDate(current.getDate() + daysUntilFriday);
+
+  while (current <= end) {
+    result.push(current.toISOString().slice(0, 10));
+    current.setDate(current.getDate() + 7);
+  }
+  return result;
+}
+function getMissingFridays(fromDate, toDate, trainingsInRange) {
+  const allFridays = getAllFridaysInRange(fromDate, toDate);
+  const existing = new Set(trainingsInRange.map(t => t.date));
+  return allFridays.filter(date => !existing.has(date));
 }
 
 async function generatePdf() {
@@ -451,6 +474,7 @@ async function generatePdf() {
   let y = 20;
   const margin = 15;
 
+  // Titel + Zeitraum
   doc.setFont("helvetica", "bold");
   doc.setFontSize(16);
   doc.text("Jugendriege Glattfelden – Trainingsübersicht", margin, y);
@@ -461,6 +485,7 @@ async function generatePdf() {
   doc.text(`Zeitraum: ${formatDateShort(fromDate)} bis ${formatDateShort(toDate)}`, margin, y);
   y += 10;
 
+  // Fehlende Freitage (kompakte Tabelle)
   if (missingFridays.length > 0) {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(11);
@@ -468,21 +493,23 @@ async function generatePdf() {
     y += 8;
 
     const colWidth = 38;
+    const rowHeight = 7;
     let x = margin;
     let count = 0;
+
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
 
     missingFridays.forEach(date => {
       if (count % 4 === 0 && count !== 0) {
-        y += 7;
+        y += rowHeight;
         x = margin;
       }
       doc.text(formatDateShort(date), x + 2, y + 5.5);
       x += colWidth;
       count++;
     });
-    y += 13;
+    y += rowHeight + 6;
   } else {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(11);
@@ -490,10 +517,11 @@ async function generatePdf() {
     y += 12;
   }
 
+  // Haupt-Tabelle
   if (trainingsInRange.length === 0) {
     doc.text("Keine Trainings im gewählten Zeitraum.", margin, y);
   } else {
-    const colWidths = [29, 23, 34, 29, 72];
+    const colWidths = [20, 24, 24, 19, 102];
     let x = margin;
 
     doc.setFillColor(240, 240, 240);
@@ -511,7 +539,10 @@ async function generatePdf() {
     const rowHeight = 10;
 
     trainingsInRange.forEach(training => {
-      if (y > 270) { doc.addPage(); y = 20; }
+      if (y > 270) { 
+        doc.addPage(); 
+        y = 20; 
+      }
 
       const prog = isTrainingFinished(training) && training.finalizedProgram.length 
         ? training.finalizedProgram 
@@ -536,8 +567,9 @@ async function generatePdf() {
     });
   }
 
-  const blob = doc.output("blob");
-  window.open(URL.createObjectURL(blob), "_blank");
+  // === DATEINAME + DOWNLOAD ===
+  const fileName = `THB_Jugi_Gross_TVG_${fromDate}_bis_${toDate}.pdf`;
+  doc.save(fileName);        // ← Das löst den Download mit dem gewünschten Namen aus
 }
 
 /* =========================
@@ -557,7 +589,12 @@ async function startFirestoreSync() {
    EVENTS
 ========================= */
 loginBtn.onclick = login;
-passwordInput.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); login(); } });
+passwordInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    login();
+  }
+});
 logoutBtn.onclick = logout;
 addProgramBtn.onclick = addProgramItem;
 programInput.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); addProgramItem(); } });
