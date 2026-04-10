@@ -402,7 +402,7 @@ button.secondary:hover {
 }
 
 .logo {
-  width: 58px;                      /* Größe des Logos */
+  width: 80px;                      /* Größe des Logos */
   height: auto;
   flex-shrink: 0;
   border-radius: 8px;
