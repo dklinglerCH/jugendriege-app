@@ -13,10 +13,10 @@ const TRAININGS_COLLECTION = "trainings";
 /* =========================
    LOGIN DATEN HIER ÄNDERN
 ========================= */
-const ADMIN_USERNAME = "admin";
-const ADMIN_PASSWORD = "admin123";
-const TRAINER_USERNAME = "trainer";
-const TRAINER_PASSWORD = "trainer123";
+const ADMIN_USERNAME = "Admin";
+const ADMIN_PASSWORD = "tvg_admin";
+const TRAINER_USERNAME = "Trainer";
+const TRAINER_PASSWORD = "tvg_trainer";
 
 /* =========================
    LOGIN ELEMENTE
