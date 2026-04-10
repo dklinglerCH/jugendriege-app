@@ -434,9 +434,15 @@ function getTrainingsInRange(fromDate, toDate) {
 }
 function getAllFridaysInRange(fromDate, toDate) {
   const result = [];
-  let current = parseLocalDate(fromDate);
-  const end = parseLocalDate(toDate);
-  while (current.getDay() !== 5) current.setDate(current.getDate() + 1);
+  // Mit Mittagszeit arbeiten → verhindert Zeitzonen-Verschiebungen
+  let current = new Date(fromDate + "T12:00:00");
+  const end = new Date(toDate + "T12:00:00");
+
+  // Zum ersten Freitag springen
+  const day = current.getDay();
+  const daysUntilFriday = (5 - day + 7) % 7;
+  current.setDate(current.getDate() + daysUntilFriday);
+
   while (current <= end) {
     result.push(current.toISOString().slice(0, 10));
     current.setDate(current.getDate() + 7);
