@@ -23,7 +23,7 @@ const TRAINER_PASSWORD = "tvg_trainer";
 ========================= */
 const loginCard = document.getElementById("login-card");
 const appContent = document.getElementById("app-content");
-const usernameInput = document.getElementById("username-input");
+const usernameSelect = document.getElementById("username-select");
 const passwordInput = document.getElementById("password-input");
 const loginBtn = document.getElementById("login-btn");
 const logoutBtn = document.getElementById("logout-btn");
@@ -114,20 +114,21 @@ function applyRoleUI() {
   renderAll();
 }
 function login() {
-  const username = usernameInput.value.trim();
+  const username = usernameSelect.value;
   const password = passwordInput.value;
   hideLoginError();
+
   if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
     currentRole = "admin";
     localStorage.setItem("jr-role", currentRole);
-    usernameInput.value = ""; passwordInput.value = "";
+    passwordInput.value = "";
     applyRoleUI();
     return;
   }
   if (username === TRAINER_USERNAME && password === TRAINER_PASSWORD) {
     currentRole = "trainer";
     localStorage.setItem("jr-role", currentRole);
-    usernameInput.value = ""; passwordInput.value = "";
+    passwordInput.value = "";
     applyRoleUI();
     return;
   }
