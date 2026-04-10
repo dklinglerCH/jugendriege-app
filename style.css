@@ -429,3 +429,21 @@ button.secondary:hover {
     max-width: 98px;
   }
 }
+
+
+/* ====================== LOGIN VERBESSERUNG ====================== */
+#login-card select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  font-size: 16px;
+  height: 54px;
+}
+
+#login-card .password-large {
+  padding: 14px 14px !important;
+  font-size: 17px !important;
+  height: 54px !important;
+}
