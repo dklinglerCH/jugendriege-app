@@ -816,7 +816,7 @@ async function generatePdf() {
   const trainingsInRange = getTrainingsInRange(fromDate, toDate);
   const missingFridays = getMissingFridays(fromDate, toDate, trainingsInRange);
 
-  const { jsPDF } = window.jspdf;
+  const jsPDF = window.jspdf.jsPDF;
 
   const doc = new jsPDF({
     orientation: "p",
