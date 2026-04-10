@@ -5,25 +5,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Jugendriege Glattfelden</title>
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
 </head>
 <body>
   <div class="app">
-
-<header class="card">
-  <div class="header-content">
-    <div class="header-text">
-      <h1>Jugendriege Glattfelden</h1>
-      <p class="subtitle">Trainingsübersicht</p>
-    </div>
-    <img src="images/tvg.png" alt="TVG Jugendriege Logo" class="logo">
-  </div>
-</header>
+    <!-- HEADER -->
+    <header class="card header">
+      <div class="header-content">
+        <img src="images/tvg.png" alt="TVG Jugendriege Logo" class="logo">
+        <div>
+          <h1>Jugendriege Glattfelden</h1>
+          <p class="subtitle">Trainingsübersicht</p>
+        </div>
+      </div>
+      <button id="dark-mode-toggle" class="dark-toggle-btn" aria-label="Dark Mode umschalten">
+        <i class="fas fa-moon"></i>
+      </button>
+    </header>
 
     <!-- LOGIN -->
     <section class="card" id="login-card">
       <h2>Login</h2>
       <div class="form-group">
-        <label for="username-select">Benutzername</label>
+        <label for="username-select">Benutzer</label>
         <select id="username-select">
           <option value="Administrator">Administrator</option>
           <option value="Trainer">Trainer</option>
@@ -38,30 +42,25 @@
       </div>
       <p id="login-error" class="training-meta hidden"></p>
     </section>
-    
-    <!-- APP -->
-    <div id="app-content" class="hidden">
 
+    <!-- APP CONTENT -->
+    <div id="app-content" class="hidden">
       <!-- NÄCHSTES TRAINING -->
       <section class="card">
         <div class="section-header">
           <h2>Nächstes Training</h2>
           <button type="button" id="logout-btn" class="secondary small-btn">Logout</button>
         </div>
-
         <p id="current-role" class="training-meta"></p>
-
         <div id="next-training-box">
           <p id="next-training-date"></p>
           <p id="next-training-status" class="training-meta"></p>
           <p id="next-training-focus" class="training-meta"></p>
           <p id="next-training-leaders" class="training-meta"></p>
-
           <div class="next-training-program-block">
             <p class="section-label">Programm</p>
             <ul id="next-training-program" class="program-checklist"></ul>
           </div>
-
           <div class="add-row next-training-add-row" id="next-training-add-area">
             <input type="text" id="next-program-input" />
             <button type="button" id="add-next-program-btn">Hinzufügen</button>
@@ -72,14 +71,11 @@
       <!-- ADMIN -->
       <section class="card" id="admin-section">
         <h2>Training planen</h2>
-
         <input type="hidden" id="editing-training-id" />
-
         <div class="form-group">
           <label for="training-date">Datum</label>
           <input type="date" id="training-date" />
         </div>
-
         <div class="form-group">
           <label for="training-status">Status</label>
           <select id="training-status">
@@ -87,12 +83,10 @@
             <option value="Fällt aus">Fällt aus</option>
           </select>
         </div>
-
         <div class="form-group">
           <label for="training-focus">Fokus</label>
           <input type="text" id="training-focus" />
         </div>
-
         <div class="form-group">
           <label>Leiter im Training</label>
           <div class="leaders-select">
@@ -102,7 +96,6 @@
             <label><input type="checkbox" class="leader-checkbox" value="Noel"> Noel</label>
           </div>
         </div>
-
         <div class="form-group">
           <label for="program-input">Programmpunkt</label>
           <div class="add-row">
@@ -110,27 +103,22 @@
             <button type="button" id="add-program-btn">Hinzufügen</button>
           </div>
         </div>
-
         <div class="form-group">
           <label>Geplantes Programm</label>
           <ul class="checklist" id="program-preview-list"></ul>
         </div>
-
         <div class="button-row">
           <button type="button" id="save-training-btn">Training speichern</button>
           <button type="button" id="cancel-edit-btn" class="secondary hidden">Bearbeiten abbrechen</button>
         </div>
       </section>
 
-      <!-- LETZTE TRAININGS -->
+      <!-- LETZTE 3 TRAININGS -->
       <section class="card">
         <div class="section-header">
           <h2>Letzte 3 Trainings</h2>
-          <button type="button" id="toggle-last-trainings-btn" class="secondary small-btn">
-            Einklappen
-          </button>
+          <button type="button" id="toggle-last-trainings-btn" class="secondary small-btn">Einklappen</button>
         </div>
-
         <div id="last-trainings-wrapper">
           <ul id="last-trainings-list"></ul>
         </div>
@@ -140,53 +128,43 @@
       <section class="card" id="all-trainings-section">
         <div class="section-header">
           <h2>Alle Trainings</h2>
-          <button type="button" id="toggle-all-trainings-btn" class="secondary small-btn">
-            Anzeigen
-          </button>
+          <button type="button" id="toggle-all-trainings-btn" class="secondary small-btn">Anzeigen</button>
         </div>
-
-        <!-- PDF BUTTON -->
-        <div class="button-row" style="margin-bottom: 10px;">
-          <button type="button" id="toggle-pdf-btn" class="secondary small-btn">
-            PDF Export
-          </button>
+        <div class="button-row" style="margin-bottom: 12px;">
+          <button type="button" id="toggle-pdf-btn" class="secondary small-btn">PDF Export</button>
         </div>
-
-        <!-- PDF BEREICH -->
         <div id="pdf-wrapper" class="hidden">
           <div class="form-group">
             <label for="pdf-from-date">Von</label>
             <input type="date" id="pdf-from-date" />
           </div>
-
           <div class="form-group">
             <label for="pdf-to-date">Bis</label>
             <input type="date" id="pdf-to-date" />
           </div>
-
           <div class="button-row">
             <button type="button" id="generate-pdf-btn">PDF generieren</button>
           </div>
-
           <p id="pdf-error" class="training-meta hidden"></p>
         </div>
-
-        <!-- TRAININGS LISTE -->
         <div id="all-trainings-wrapper" class="hidden">
           <div id="all-trainings-list"></div>
         </div>
       </section>
-
     </div>
   </div>
 
-  <!-- FIREBASE + APP -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/3.0.3/jspdf.umd.min.js"></script>
-  
+  <!-- LOADING OVERLAY -->
+  <div id="loading-overlay" class="hidden">
+    <div class="spinner"></div>
+    <p id="loading-text">PDF wird generiert...</p>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/3.0.3/jspdf.umd.min.js"></script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
     import { getFirestore } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
-
+    
     const firebaseConfig = {
       apiKey: "AIzaSyB6xOqPwAL59jJHDE-DEQXKRbtub3GVszE",
       authDomain: "jugendriege-app.firebaseapp.com",
@@ -195,14 +173,11 @@
       messagingSenderId: "871508360233",
       appId: "1:871508360233:web:1d49c529b9009065aa7038"
     };
-
+    
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-
     window.db = db;
-
     await import("./app.js");
   </script>
-
 </body>
 </html>
