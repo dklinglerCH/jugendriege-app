@@ -137,7 +137,7 @@ function login() {
 function logout() {
   currentRole = "";
   localStorage.removeItem("jr-role");
-  usernameInput.value = ""; passwordInput.value = "";
+  passwordInput.value = "";
   hideLoginError();
   if (pdfWrapper) pdfWrapper.classList.add("hidden");
   hidePdfError();
@@ -589,8 +589,12 @@ async function startFirestoreSync() {
    EVENTS
 ========================= */
 loginBtn.onclick = login;
-passwordInput.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); login(); } });
-usernameInput.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); login(); } });
+passwordInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    login();
+  }
+});
 logoutBtn.onclick = logout;
 addProgramBtn.onclick = addProgramItem;
 programInput.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); addProgramItem(); } });
