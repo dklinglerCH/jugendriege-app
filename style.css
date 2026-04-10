@@ -393,38 +393,39 @@ button.secondary:hover {
 .header-content {
   display: flex;
   align-items: center;
-  justify-content: space-between;   /* Das ist der wichtige Teil */
+  justify-content: space-between;
   gap: 16px;
 }
 
 .header-text {
-  flex: 1;                          /* Nimmt den ganzen verfügbaren Platz */
+  flex: 1;
 }
 
 .logo {
-  width: 350px !important;                      /* Größe des Logos */
+  width: 160px;                  /* gute Größe für Laptop */
+  max-width: 130px;              /* verhindert zu groß werden */
   height: auto;
   flex-shrink: 0;
   border-radius: 10px;
   object-fit: contain;
 }
 
-.header-content h1 {
-  margin: 0;
-  font-size: 26px;
-  line-height: 1.1;
-}
-
-.header-content .subtitle {
-  margin: 3px 0 0 0;
-}
-
-/* Für Handys */
+/* Für iPhone & kleine Bildschirme */
 @media (max-width: 640px) {
   .logo {
-    width: 52px;
+    width: 85px;                 /* etwas kleiner als vorher */
+    max-width: 85px;
   }
+  
   .header-content h1 {
     font-size: 23px;
+  }
+}
+
+/* Extra Regel speziell für Chrome auf iPhone (kleinere Breite) */
+@media (max-width: 480px) {
+  .logo {
+    width: 78px;                 /* noch etwas reduziert für Chrome iOS */
+    max-width: 78px;
   }
 }
