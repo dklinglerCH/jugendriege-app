@@ -402,7 +402,7 @@ button.secondary:hover {
 }
 
 .logo {
-  width: 240px;           /* Laptop / Desktop */
+  width: 200px;           /* Laptop / Desktop */
   max-width: 250px;
   height: auto;
   flex-shrink: 0;
