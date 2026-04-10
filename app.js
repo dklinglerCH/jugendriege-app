@@ -478,7 +478,7 @@ async function generatePdf() {
   doc.text(`Zeitraum: ${formatDateShort(fromDate)} bis ${formatDateShort(toDate)}`, margin, y);
   y += 10;
 
-  // === FEHLENDE FREITAGE ALS KOMPAKTE TABELLE ===
+  // Fehlende Freitage (kompakte Tabelle)
   if (missingFridays.length > 0) {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(11);
@@ -510,14 +510,13 @@ async function generatePdf() {
     y += 12;
   }
 
-  // === HAUPT-TABELLE ===
+  // Haupt-Tabelle
   if (trainingsInRange.length === 0) {
     doc.text("Keine Trainings im gewählten Zeitraum.", margin, y);
   } else {
-    const colWidths = [20, 24, 24, 19, 102];   // Programm-Spalte breit
+    const colWidths = [20, 24, 24, 19, 102];
     let x = margin;
 
-    // Header
     doc.setFillColor(240, 240, 240);
     doc.rect(x, y, colWidths.reduce((a, b) => a + b, 0), 11, "F");
     doc.setFont("helvetica", "bold");
@@ -528,7 +527,6 @@ async function generatePdf() {
     });
     y += 11;
 
-    // Zeilen
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
     const rowHeight = 10;
@@ -562,8 +560,9 @@ async function generatePdf() {
     });
   }
 
-  const blob = doc.output("blob");
-  window.open(URL.createObjectURL(blob), "_blank");
+  // === DATEINAME + DOWNLOAD ===
+  const fileName = `THB_Jugi_Gross_TVG_${fromDate}-${toDate}.pdf`;
+  doc.save(fileName);        // ← Das löst den Download mit dem gewünschten Namen aus
 }
 
 /* =========================
