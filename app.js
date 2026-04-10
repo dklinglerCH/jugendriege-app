@@ -67,7 +67,6 @@ const pdfError = document.getElementById("pdf-error");
 
 const leaderCheckboxes = document.querySelectorAll(".leader-checkbox");
 const loadingOverlay = document.getElementById("loading-overlay");
-const loadingText = document.getElementById("loading-text");
 
 /* =========================
    STATE
@@ -106,16 +105,10 @@ function applyRoleUI() {
     currentRoleText.textContent = "Eingeloggt als: Admin";
     adminSection.classList.remove("hidden");
     allTrainingsSection.classList.remove("hidden");
-    nextTrainingAddArea.classList.remove("hidden");
-    togglePdfBtn.classList.remove("hidden");
   } else {
     currentRoleText.textContent = "Eingeloggt als: Trainer";
     adminSection.classList.add("hidden");
     allTrainingsSection.classList.add("hidden");
-    nextTrainingAddArea.classList.remove("hidden");
-    pdfWrapper.classList.add("hidden");
-    togglePdfBtn.classList.add("hidden");
-    resetForm();
   }
   renderAll();
 }
@@ -144,16 +137,12 @@ function logout() {
   localStorage.removeItem("jr-role");
   passwordInput.value = "";
   hideLoginError();
-  pdfWrapper.classList.add("hidden");
-  hidePdfError();
   applyRoleUI();
 }
 
 /* =========================
-   TRAINING HILFSFUNKTIONEN + FIRESTORE + FORM + RENDER etc.
-   (alles unverändert, aber sauber und vollständig)
+   HILFSFUNKTIONEN
 ========================= */
-
 function parseLocalDate(dateString) {
   return new Date(`${dateString}T00:00:00`);
 }
@@ -210,7 +199,9 @@ function getNextTraining() {
   return getUpcomingTrainings()[0] || null;
 }
 
-/* FIRESTORE */
+/* =========================
+   FIRESTORE
+========================= */
 async function updateTrainingInFirestore(trainingId, data) {
   await updateDoc(doc(db, TRAININGS_COLLECTION, trainingId), data);
 }
@@ -222,24 +213,217 @@ async function finalizePastTrainingsIfNeeded() {
   }
 }
 
-/* FORM & RENDER-FUNKTIONEN (komplett) */
-function resetForm() { /* ... vollständig wie vorher ... */ }
-function renderProgramPreview() { /* ... vollständig ... */ }
-function renderNextTraining() { /* ... vollständig ... */ }
-async function toggleNextTrainingProgramItem(index, checked) { /* ... vollständig ... */ }
-async function addNextTrainingProgramItem() { /* ... vollständig ... */ }
-function renderLastTrainings() { /* ... vollständig ... */ }
-function createTrainingCard(training) { /* ... vollständig ... */ }
-function attachTrainingCardEvents() { /* ... vollständig ... */ }
-function renderAllTrainings() { /* ... vollständig ... */ }
-function renderToggleButtons() { /* ... vollständig ... */ }
-function renderAll() { /* ... vollständig ... */ }
-function addProgramItem() { /* ... vollständig ... */ }
-function startEditingTraining(trainingId) { /* ... vollständig ... */ }
-async function deleteTraining(trainingId) { /* ... vollständig ... */ }
-async function saveTraining() { /* ... vollständig ... */ }
+/* =========================
+   FORM
+========================= */
+function resetForm() {
+  editingTrainingIdInput.value = "";
+  trainingDateInput.value = "";
+  trainingStatusInput.value = "Findet statt";
+  trainingFocusInput.value = "";
+  programInput.value = "";
+  currentProgramItems = [];
+  setSelectedLeaders([]);
+  saveTrainingBtn.textContent = "Training speichern";
+  cancelEditBtn.classList.add("hidden");
+  renderProgramPreview();
+}
 
-/* PDF (mit Loading) */
+function renderProgramPreview() {
+  programPreviewList.innerHTML = "";
+  if (currentProgramItems.length === 0) {
+    const li = document.createElement("li");
+    li.textContent = "Noch keine Programmpunkte";
+    programPreviewList.appendChild(li);
+    return;
+  }
+  currentProgramItems.forEach((item, index) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div class="training-row"><span>${item.text}</span><button type="button" class="secondary remove-program-btn" data-index="${index}">Entfernen</button></div>`;
+    programPreviewList.appendChild(li);
+  });
+  document.querySelectorAll(".remove-program-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (!isAdmin()) return;
+      currentProgramItems.splice(Number(btn.dataset.index), 1);
+      renderProgramPreview();
+    });
+  });
+}
+
+/* =========================
+   NÄCHSTES TRAINING
+========================= */
+function renderNextTraining() {
+  const next = getNextTraining();
+  if (!next) {
+    nextTrainingDate.textContent = "Noch kein Training geplant";
+    nextTrainingStatus.textContent = nextTrainingFocus.textContent = nextTrainingLeaders.textContent = "";
+    nextTrainingProgram.innerHTML = "";
+    nextProgramInput.disabled = addNextProgramBtn.disabled = true;
+    return;
+  }
+  nextTrainingDate.textContent = `${formatDate(next.date)}, 18:00–20:00`;
+  nextTrainingStatus.textContent = `Status: ${next.status}`;
+  nextTrainingFocus.textContent = next.focus ? `Fokus: ${next.focus}` : "Fokus: Noch nicht gesetzt";
+  nextTrainingLeaders.textContent = next.leaders.length ? `Leiter: ${next.leaders.join(", ")}` : "Leiter: Noch nicht gewählt";
+  nextProgramInput.disabled = addNextProgramBtn.disabled = !isLoggedIn();
+
+  nextTrainingProgram.innerHTML = "";
+  if (next.program.length === 0) {
+    const li = document.createElement("li");
+    li.innerHTML = `<label><span>Noch kein Programm erfasst</span></label>`;
+    nextTrainingProgram.appendChild(li);
+    return;
+  }
+  next.program.forEach((item, i) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<label><input type="checkbox" data-index="${i}" ${item.checked ? "checked" : ""} ${isLoggedIn() ? "" : "disabled"} /><span>${item.text}</span></label>`;
+    nextTrainingProgram.appendChild(li);
+  });
+  nextTrainingProgram.querySelectorAll("input").forEach(cb => {
+    cb.addEventListener("change", async e => {
+      if (!isLoggedIn()) return;
+      await toggleNextTrainingProgramItem(Number(e.target.dataset.index), e.target.checked);
+    });
+  });
+}
+async function toggleNextTrainingProgramItem(index, checked) {
+  const next = getNextTraining();
+  if (!next) return;
+  const updated = next.program.map((item, i) => i === index ? { ...item, checked } : item);
+  await updateTrainingInFirestore(next.id, { program: updated });
+}
+async function addNextTrainingProgramItem() {
+  if (!isLoggedIn()) return;
+  const text = nextProgramInput.value.trim();
+  const next = getNextTraining();
+  if (!next || !text) return;
+  const updated = [...next.program, { text, checked: true }];
+  await updateTrainingInFirestore(next.id, { program: updated });
+  nextProgramInput.value = "";
+}
+
+/* =========================
+   VERGANGENE + ALLE TRAININGS
+========================= */
+function renderLastTrainings() {
+  const pastTrainings = getPastTrainings().slice(0, 3);
+  lastTrainingsList.innerHTML = "";
+  if (pastTrainings.length === 0) {
+    const li = document.createElement("li");
+    li.textContent = "Noch keine vergangenen Trainings";
+    lastTrainingsList.appendChild(li);
+    return;
+  }
+  pastTrainings.forEach(training => {
+    const li = document.createElement("li");
+    const focusText = training.focus ? `Fokus: ${training.focus}` : "Fokus: Noch nicht gesetzt";
+    const leadersText = training.leaders.length ? `Leiter: ${training.leaders.join(", ")}` : "Leiter: Noch nicht gewählt";
+    const finalProgram = training.finalizedProgram.length ? training.finalizedProgram : training.program.map(item => item.text);
+    const programHtml = finalProgram.length ? `<ul>${finalProgram.map(item => `<li>${item}</li>`).join("")}</ul>` : `<p>Kein Programm vorhanden</p>`;
+    li.innerHTML = `<div><strong>${formatDate(training.date)}</strong><p class="training-meta">Status: ${training.status}</p><p class="training-meta">${focusText}</p><p class="training-meta">${leadersText}</p><div><strong>Programm</strong>${programHtml}</div></div>`;
+    lastTrainingsList.appendChild(li);
+  });
+}
+
+function createTrainingCard(training) {
+  const card = document.createElement("div");
+  card.className = "training-entry";
+  const focusHtml = training.focus ? `<p class="training-meta"><strong>Fokus:</strong> ${training.focus}</p>` : `<p class="training-meta"><strong>Fokus:</strong> Noch nicht gesetzt</p>`;
+  const leadersHtml = training.leaders.length ? `<p class="training-meta"><strong>Leiter:</strong> ${training.leaders.join(", ")}</p>` : `<p class="training-meta"><strong>Leiter:</strong> Noch nicht gewählt</p>`;
+  const programSource = isTrainingFinished(training) && training.finalizedProgram.length ? training.finalizedProgram : training.program.map(item => item.text);
+  const programHtml = programSource.length ? `<ul>${programSource.map(item => `<li>${item}</li>`).join("")}</ul>` : `<p>Kein Programm vorhanden</p>`;
+  const actionButtons = isAdmin() ? `<div class="button-row"><button type="button" class="edit-training-btn" data-id="${training.id}">Bearbeiten</button><button type="button" class="secondary delete-training-btn" data-id="${training.id}">Löschen</button></div>` : "";
+  card.innerHTML = `<div class="training-entry-header"><h3>${formatDate(training.date)}</h3><p class="training-meta">Status: ${training.status}</p>${focusHtml}${leadersHtml}</div><div class="training-entry-program"><strong>Programm</strong>${programHtml}</div>${actionButtons}`;
+  return card;
+}
+
+function attachTrainingCardEvents() {
+  if (!isAdmin()) return;
+  document.querySelectorAll(".edit-training-btn").forEach(btn => btn.addEventListener("click", () => startEditingTraining(btn.dataset.id)));
+  document.querySelectorAll(".delete-training-btn").forEach(btn => btn.addEventListener("click", () => deleteTraining(btn.dataset.id)));
+}
+
+function renderAllTrainings() {
+  const sorted = getSortedTrainings().reverse();
+  allTrainingsList.innerHTML = sorted.length ? "" : "<p>Noch keine Trainings erfasst.</p>";
+  sorted.forEach(training => allTrainingsList.appendChild(createTrainingCard(training)));
+  attachTrainingCardEvents();
+}
+
+function renderToggleButtons() {
+  toggleLastTrainingsBtn.textContent = lastTrainingsWrapper.classList.contains("hidden") ? "Anzeigen" : "Einklappen";
+  toggleAllTrainingsBtn.textContent = allTrainingsWrapper.classList.contains("hidden") ? "Anzeigen" : "Einklappen";
+}
+
+function renderAll() {
+  renderProgramPreview();
+  renderNextTraining();
+  renderLastTrainings();
+  renderAllTrainings();
+  renderToggleButtons();
+}
+
+function addProgramItem() {
+  if (!isAdmin()) return;
+  const text = programInput.value.trim();
+  if (!text) return;
+  currentProgramItems.push({ text, checked: false });
+  programInput.value = "";
+  renderProgramPreview();
+}
+
+function startEditingTraining(trainingId) {
+  if (!isAdmin()) return;
+  const training = trainings.find(t => t.id === trainingId);
+  if (!training) return;
+  editingTrainingIdInput.value = training.id;
+  trainingDateInput.value = training.date;
+  trainingStatusInput.value = training.status;
+  trainingFocusInput.value = training.focus || "";
+  currentProgramItems = training.program.map(item => ({ text: item.text, checked: Boolean(item.checked) }));
+  setSelectedLeaders(training.leaders);
+  saveTrainingBtn.textContent = "Änderungen speichern";
+  cancelEditBtn.classList.remove("hidden");
+  renderProgramPreview();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+async function deleteTraining(trainingId) {
+  if (!isAdmin()) return;
+  if (!confirm("Dieses Training wirklich löschen?")) return;
+  await deleteDoc(doc(db, TRAININGS_COLLECTION, trainingId));
+  if (editingTrainingIdInput.value === trainingId) resetForm();
+}
+
+async function saveTraining() {
+  if (!isAdmin()) return;
+  const date = trainingDateInput.value;
+  const status = trainingStatusInput.value;
+  const focus = trainingFocusInput.value.trim();
+  const leaders = getSelectedLeaders();
+  if (!date) return alert("Bitte ein Datum auswählen.");
+  const selectedDate = parseLocalDate(date);
+  if (selectedDate.getDay() !== 5) return alert("Trainings sind nur am Freitag möglich.");
+  const existingId = editingTrainingIdInput.value;
+  const trainingData = {
+    date, status, focus, leaders,
+    program: currentProgramItems.map(item => ({ text: item.text, checked: Boolean(item.checked) })),
+    finalizedProgram: []
+  };
+  if (existingId) {
+    const existing = trainings.find(t => t.id === existingId);
+    await updateTrainingInFirestore(existingId, { ...trainingData, finalizedProgram: existing?.finalizedProgram || [] });
+  } else {
+    await addDoc(collection(db, TRAININGS_COLLECTION), trainingData);
+  }
+  resetForm();
+}
+
+/* =========================
+   PDF
+========================= */
 function showPdfError(message) {
   pdfError.textContent = message;
   pdfError.classList.remove("hidden");
@@ -249,33 +433,14 @@ function hidePdfError() {
   pdfError.classList.add("hidden");
 }
 
-/* Loading Funktionen */
-function showLoading(text = "PDF wird generiert...") {
-  loadingText.textContent = text;
-  loadingOverlay.style.display = "flex";
-}
-function hideLoading() {
-  loadingOverlay.style.display = "none";
-}
-
-/* =========================
-   NEUE PDF-FUNKTION (mit Loading)
-========================= */
 async function generatePdf() {
   if (!isAdmin()) return;
   hidePdfError();
-  showLoading();
 
   const fromDate = pdfFromDateInput.value;
   const toDate = pdfToDateInput.value;
-  if (!fromDate || !toDate) {
-    hideLoading();
-    return showPdfError("Bitte Von- und Bis-Datum auswählen.");
-  }
-  if (fromDate > toDate) {
-    hideLoading();
-    return showPdfError("Das Von-Datum muss vor dem Bis-Datum liegen.");
-  }
+  if (!fromDate || !toDate) return showPdfError("Bitte Von- und Bis-Datum auswählen.");
+  if (fromDate > toDate) return showPdfError("Das Von-Datum muss vor dem Bis-Datum liegen.");
 
   const trainingsInRange = getTrainingsInRange(fromDate, toDate);
   const missingFridays = getMissingFridays(fromDate, toDate, trainingsInRange);
@@ -296,7 +461,6 @@ async function generatePdf() {
   doc.text(`Zeitraum: ${formatDateShort(fromDate)} bis ${formatDateShort(toDate)}`, margin, y);
   y += 10;
 
-  // Fehlende Freitage als kompakte Tabelle
   if (missingFridays.length > 0) {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(11);
@@ -304,23 +468,21 @@ async function generatePdf() {
     y += 8;
 
     const colWidth = 38;
-    const rowHeight = 7;
     let x = margin;
     let count = 0;
-
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
 
     missingFridays.forEach(date => {
       if (count % 4 === 0 && count !== 0) {
-        y += rowHeight;
+        y += 7;
         x = margin;
       }
       doc.text(formatDateShort(date), x + 2, y + 5.5);
       x += colWidth;
       count++;
     });
-    y += rowHeight + 6;
+    y += 13;
   } else {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(11);
@@ -328,7 +490,6 @@ async function generatePdf() {
     y += 12;
   }
 
-  // Haupt-Tabelle
   if (trainingsInRange.length === 0) {
     doc.text("Keine Trainings im gewählten Zeitraum.", margin, y);
   } else {
@@ -375,13 +536,12 @@ async function generatePdf() {
     });
   }
 
-  hideLoading();
   const blob = doc.output("blob");
   window.open(URL.createObjectURL(blob), "_blank");
 }
 
 /* =========================
-   FIRESTORE SYNC + DARK MODE + EVENTS
+   FIRESTORE SYNC
 ========================= */
 async function startFirestoreSync() {
   if (!db || isStartingFirestore) return;
@@ -393,19 +553,9 @@ async function startFirestoreSync() {
   }, console.error);
 }
 
-/* Dark Mode */
-function initDarkMode() {
-  const toggle = document.getElementById("dark-mode-toggle");
-  const isDark = localStorage.getItem("darkMode") === "true";
-  if (isDark) document.body.classList.add("dark");
-
-  toggle.addEventListener("click", () => {
-    document.body.classList.toggle("dark");
-    localStorage.setItem("darkMode", document.body.classList.contains("dark"));
-  });
-}
-
-/* EVENTS */
+/* =========================
+   EVENTS
+========================= */
 loginBtn.onclick = login;
 passwordInput.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); login(); } });
 logoutBtn.onclick = logout;
@@ -425,4 +575,3 @@ if (generatePdfBtn) generatePdfBtn.onclick = () => generatePdf();
 ========================= */
 applyRoleUI();
 startFirestoreSync();
-initDarkMode();
