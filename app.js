@@ -307,21 +307,137 @@ async function addNextTrainingProgramItem() {
 }
 
 /* =========================
-   VERGANGENE + ALLE TRAININGS
+   VERGANGENE TRAININGS
 ========================= */
-function renderLastTrainings() { /* ... (wie in deinem Original) ... */ }
-function createTrainingCard(training) { /* ... (wie in deinem Original) ... */ }
-function attachTrainingCardEvents() { /* ... (wie in deinem Original) ... */ }
-function renderAllTrainings() { /* ... (wie in deinem Original) ... */ }
-function renderToggleButtons() { /* ... (wie in deinem Original) ... */ }
-function renderAll() { /* ... (wie in deinem Original) ... */ }
-function addProgramItem() { /* ... (wie in deinem Original) ... */ }
-function startEditingTraining(trainingId) { /* ... (wie in deinem Original) ... */ }
-async function deleteTraining(trainingId) { /* ... (wie in deinem Original) ... */ }
-async function saveTraining() { /* ... (wie in deinem Original) ... */ }
+function renderLastTrainings() {
+  const pastTrainings = getPastTrainings().slice(0, 3);
+  lastTrainingsList.innerHTML = "";
+  if (pastTrainings.length === 0) {
+    const li = document.createElement("li");
+    li.textContent = "Noch keine vergangenen Trainings";
+    lastTrainingsList.appendChild(li);
+    return;
+  }
+  pastTrainings.forEach(training => {
+    const li = document.createElement("li");
+    const focusText = training.focus ? `Fokus: ${training.focus}` : "Fokus: Noch nicht gesetzt";
+    const leadersText = training.leaders.length ? `Leiter: ${training.leaders.join(", ")}` : "Leiter: Noch nicht gewählt";
+    const finalProgram = training.finalizedProgram.length ? training.finalizedProgram : training.program.map(item => item.text);
+    const programHtml = finalProgram.length ? `<ul>${finalProgram.map(item => `<li>${item}</li>`).join("")}</ul>` : `<p>Kein Programm vorhanden</p>`;
+    li.innerHTML = `
+      <div>
+        <strong>${formatDate(training.date)}</strong>
+        <p class="training-meta">Status: ${training.status}</p>
+        <p class="training-meta">${focusText}</p>
+        <p class="training-meta">${leadersText}</p>
+        <div><strong>Programm</strong>${programHtml}</div>
+      </div>`;
+    lastTrainingsList.appendChild(li);
+  });
+}
 
 /* =========================
-   PDF (NEU – TABELLE)
+   ALLE TRAININGS
+========================= */
+function createTrainingCard(training) {
+  const card = document.createElement("div");
+  card.className = "training-entry";
+  const focusHtml = training.focus ? `<p class="training-meta"><strong>Fokus:</strong> ${training.focus}</p>` : `<p class="training-meta"><strong>Fokus:</strong> Noch nicht gesetzt</p>`;
+  const leadersHtml = training.leaders.length ? `<p class="training-meta"><strong>Leiter:</strong> ${training.leaders.join(", ")}</p>` : `<p class="training-meta"><strong>Leiter:</strong> Noch nicht gewählt</p>`;
+  const programSource = isTrainingFinished(training) && training.finalizedProgram.length ? training.finalizedProgram : training.program.map(item => item.text);
+  const programHtml = programSource.length ? `<ul>${programSource.map(item => `<li>${item}</li>`).join("")}</ul>` : `<p>Kein Programm vorhanden</p>`;
+  const actionButtons = isAdmin() ? `<div class="button-row"><button type="button" class="edit-training-btn" data-id="${training.id}">Bearbeiten</button><button type="button" class="secondary delete-training-btn" data-id="${training.id}">Löschen</button></div>` : "";
+  card.innerHTML = `
+    <div class="training-entry-header">
+      <h3>${formatDate(training.date)}</h3>
+      <p class="training-meta">Status: ${training.status}</p>
+      ${focusHtml}
+      ${leadersHtml}
+    </div>
+    <div class="training-entry-program">
+      <strong>Programm</strong>
+      ${programHtml}
+    </div>
+    ${actionButtons}`;
+  return card;
+}
+function attachTrainingCardEvents() {
+  if (!isAdmin()) return;
+  document.querySelectorAll(".edit-training-btn").forEach(btn => btn.addEventListener("click", () => startEditingTraining(btn.dataset.id)));
+  document.querySelectorAll(".delete-training-btn").forEach(btn => btn.addEventListener("click", () => deleteTraining(btn.dataset.id)));
+}
+function renderAllTrainings() {
+  const sorted = getSortedTrainings().reverse();
+  allTrainingsList.innerHTML = sorted.length ? "" : "<p>Noch keine Trainings erfasst.</p>";
+  sorted.forEach(training => allTrainingsList.appendChild(createTrainingCard(training)));
+  attachTrainingCardEvents();
+}
+function renderToggleButtons() {
+  toggleLastTrainingsBtn.textContent = lastTrainingsWrapper.classList.contains("hidden") ? "Anzeigen" : "Einklappen";
+  toggleAllTrainingsBtn.textContent = allTrainingsWrapper.classList.contains("hidden") ? "Anzeigen" : "Einklappen";
+}
+function renderAll() {
+  renderProgramPreview();
+  renderNextTraining();
+  renderLastTrainings();
+  renderAllTrainings();
+  renderToggleButtons();
+}
+function addProgramItem() {
+  if (!isAdmin()) return;
+  const text = programInput.value.trim();
+  if (!text) return;
+  currentProgramItems.push({ text, checked: false });
+  programInput.value = "";
+  renderProgramPreview();
+}
+function startEditingTraining(trainingId) {
+  if (!isAdmin()) return;
+  const training = trainings.find(t => t.id === trainingId);
+  if (!training) return;
+  editingTrainingIdInput.value = training.id;
+  trainingDateInput.value = training.date;
+  trainingStatusInput.value = training.status;
+  trainingFocusInput.value = training.focus || "";
+  currentProgramItems = training.program.map(item => ({ text: item.text, checked: Boolean(item.checked) }));
+  setSelectedLeaders(training.leaders);
+  saveTrainingBtn.textContent = "Änderungen speichern";
+  cancelEditBtn.classList.remove("hidden");
+  renderProgramPreview();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+async function deleteTraining(trainingId) {
+  if (!isAdmin()) return;
+  if (!confirm("Dieses Training wirklich löschen?")) return;
+  await deleteDoc(doc(db, TRAININGS_COLLECTION, trainingId));
+  if (editingTrainingIdInput.value === trainingId) resetForm();
+}
+async function saveTraining() {
+  if (!isAdmin()) return;
+  const date = trainingDateInput.value;
+  const status = trainingStatusInput.value;
+  const focus = trainingFocusInput.value.trim();
+  const leaders = getSelectedLeaders();
+  if (!date) return alert("Bitte ein Datum auswählen.");
+  const selectedDate = parseLocalDate(date);
+  if (selectedDate.getDay() !== 5) return alert("Trainings sind nur am Freitag möglich.");
+  const existingId = editingTrainingIdInput.value;
+  const trainingData = {
+    date, status, focus, leaders,
+    program: currentProgramItems.map(item => ({ text: item.text, checked: Boolean(item.checked) })),
+    finalizedProgram: []
+  };
+  if (existingId) {
+    const existing = trainings.find(t => t.id === existingId);
+    await updateTrainingInFirestore(existingId, { ...trainingData, finalizedProgram: existing?.finalizedProgram || [] });
+  } else {
+    await addDoc(collection(db, TRAININGS_COLLECTION), trainingData);
+  }
+  resetForm();
+}
+
+/* =========================
+   PDF (TABELLE)
 ========================= */
 function showPdfError(message) {
   pdfError.textContent = message;
@@ -354,7 +470,6 @@ function getMissingFridays(fromDate, toDate, trainingsInRange) {
 async function generatePdf() {
   if (!isAdmin()) return;
   hidePdfError();
-
   const fromDate = pdfFromDateInput.value;
   const toDate = pdfToDateInput.value;
   if (!fromDate || !toDate) return showPdfError("Bitte Von- und Bis-Datum auswählen.");
@@ -391,7 +506,6 @@ async function generatePdf() {
     const colWidths = [32, 26, 38, 32, 52];
     let x = margin;
 
-    // Header
     doc.setFillColor(240, 240, 240);
     doc.rect(x, y, colWidths.reduce((a,b)=>a+b,0), 10, "F");
     doc.setFont("helvetica", "bold");
@@ -402,17 +516,14 @@ async function generatePdf() {
     });
     y += 10;
 
-    // Zeilen
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
 
     trainingsInRange.forEach(training => {
       if (y > 270) { doc.addPage(); y = 20; }
-
       const prog = isTrainingFinished(training) && training.finalizedProgram.length 
         ? training.finalizedProgram 
         : training.program.map(p => p.text);
-
       const row = [
         formatDateShort(training.date),
         training.status,
@@ -420,7 +531,6 @@ async function generatePdf() {
         training.leaders.join(", ") || "-",
         prog.join(", ") || "-"
       ];
-
       x = margin;
       doc.rect(x, y, colWidths.reduce((a,b)=>a+b,0), 8);
       row.forEach((text,i) => {
@@ -448,9 +558,6 @@ async function startFirestoreSync() {
   }, console.error);
 }
 
-/* =========================
-   EVENTS
-========================= */
 loginBtn.onclick = login;
 passwordInput.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); login(); } });
 usernameInput.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); login(); } });
@@ -466,8 +573,5 @@ toggleAllTrainingsBtn.onclick = () => { allTrainingsWrapper.classList.toggle("hi
 if (togglePdfBtn) togglePdfBtn.onclick = () => { pdfWrapper.classList.toggle("hidden"); hidePdfError(); };
 if (generatePdfBtn) generatePdfBtn.onclick = () => generatePdf();
 
-/* =========================
-   START
-========================= */
 applyRoleUI();
 startFirestoreSync();
