@@ -491,8 +491,7 @@ async function generatePdf() {
   if (trainingsInRange.length === 0) {
     doc.text("Keine Trainings im gewählten Zeitraum.", margin, y);
   } else {
-    // Neue Spaltenbreiten (Programm deutlich breiter)
-    const colWidths = [30, 24, 35, 30, 65];   // Datum | Status | Fokus | Leiter | Programm
+    const colWidths = [30, 24, 35, 30, 65];   // Programm jetzt deutlich breiter
     let x = margin;
 
     // Header
@@ -509,7 +508,7 @@ async function generatePdf() {
     // Zeilen
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
-    const rowHeight = 9;   // etwas höher für bessere Umbrüche
+    const rowHeight = 9;   // etwas höher für bessere Lesbarkeit
 
     trainingsInRange.forEach(training => {
       if (y > 270) { 
