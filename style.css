@@ -1,44 +1,30 @@
-/* =============================================
-   JUGENDRIEGE GLATTFELDEN – MODERNES DESIGN
-   Teil 1: Grundlage + Dark Mode
-   ============================================= */
-
 * {
   box-sizing: border-box;
 }
 
 :root {
-  --bg: #f8f9fc;
+  --bg: #f4f7fb;
   --card: #ffffff;
   --text: #1f2937;
-  --muted: #64748b;
-  --line: #e2e8f0;
-  --primary: #1e40af;
-  --primary-hover: #16337f;
-  --shadow: 0 10px 30px -5px rgba(30, 64, 175, 0.12);
-  --radius: 20px;
-}
-
-/* Dark Mode */
-body.dark {
-  --bg: #0f172a;
-  --card: #1e2937;
-  --text: #f1f5f9;
-  --muted: #94a3b8;
-  --line: #334155;
-  --shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.35);
+  --muted: #6b7280;
+  --line: #dbe3ee;
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --secondary: #e5e7eb;
+  --secondary-hover: #d1d5db;
+  --shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  --radius: 16px;
 }
 
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: Arial, sans-serif;
   background: var(--bg);
   color: var(--text);
-  line-height: 1.5;
 }
 
 .app {
-  max-width: 760px;
+  max-width: 720px;
   margin: 0 auto;
   padding: 16px;
 }
@@ -46,8 +32,418 @@ body {
 .card {
   background: var(--card);
   border-radius: var(--radius);
-  padding: 24px;
-  margin-bottom: 20px;
+  padding: 18px;
+  margin-bottom: 16px;
   box-shadow: var(--shadow);
-  transition: all 0.3s ease;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+h2 {
+  font-size: 20px;
+  margin-bottom: 0;
+}
+
+h3 {
+  font-size: 17px;
+  margin-bottom: 6px;
+}
+
+.subtitle {
+  color: var(--muted);
+  margin-bottom: 0;
+}
+
+ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+li {
+  margin-bottom: 8px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+input[type="date"],
+input[type="text"],
+select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  font-size: 16px;
+}
+
+input[type="date"]:focus,
+input[type="text"]:focus,
+select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.add-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.add-row input {
+  flex: 1;
+}
+
+.button-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+button {
+  border: none;
+  border-radius: 12px;
+  padding: 11px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  background: var(--primary);
+  color: white;
+  cursor: pointer;
+}
+
+button:hover {
+  background: var(--primary-hover);
+}
+
+button.secondary {
+  background: var(--secondary);
+  color: var(--text);
+}
+
+button.secondary:hover {
+  background: var(--secondary-hover);
+}
+
+.small-btn {
+  padding: 9px 12px;
+  font-size: 13px;
+}
+
+.hidden {
+  display: none;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.leaders-select {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.leaders-select label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 0;
+  font-weight: 500;
+  background: #f8fafc;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.leaders-select input {
+  margin: 0;
+  width: 18px;
+  height: 18px;
+}
+
+.checklist {
+  list-style: none;
+  padding-left: 0;
+}
+
+.checklist li {
+  background: #f8fafc;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.training-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.training-row span {
+  flex: 1;
+  word-break: break-word;
+}
+
+.remove-program-btn {
+  flex-shrink: 0;
+}
+
+.training-meta {
+  color: var(--muted);
+  font-size: 15px;
+  margin-bottom: 6px;
+}
+
+.section-label {
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+#next-training-box {
+  background: #f8fafc;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px;
+}
+
+#next-training-date {
+  font-weight: 700;
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+#next-training-status,
+#next-training-focus,
+#next-training-leaders {
+  margin-bottom: 6px;
+}
+
+.next-training-program-block {
+  margin-top: 14px;
+}
+
+.program-checklist {
+  list-style: none;
+  padding-left: 0;
+}
+
+.program-checklist li {
+  margin-bottom: 10px;
+}
+
+.program-checklist label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 0;
+  font-weight: 500;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.program-checklist input[type="checkbox"] {
+  margin: 0;
+  width: 18px;
+  height: 18px;
+}
+
+.next-training-add-row {
+  margin-top: 12px;
+}
+
+#last-trainings-list {
+  list-style: none;
+  padding-left: 0;
+}
+
+#last-trainings-list > li {
+  background: #f8fafc;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+#last-trainings-list p {
+  margin: 6px 0;
+}
+
+#last-trainings-list ul {
+  margin-top: 8px;
+  padding-left: 20px;
+}
+
+.training-entry {
+  background: #f8fafc;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.training-entry-header {
+  margin-bottom: 10px;
+}
+
+.training-entry-header h3 {
+  margin-bottom: 8px;
+}
+
+.training-entry-header p {
+  margin: 6px 0;
+}
+
+.training-entry-program {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.training-entry-program strong {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.training-entry-program p {
+  margin: 6px 0;
+}
+
+.training-entry-program ul {
+  margin: 8px 0 0 0;
+  padding-left: 20px;
+}
+
+.training-entry-program li {
+  margin-bottom: 6px;
+}
+
+@media (max-width: 640px) {
+  .app {
+    padding: 12px;
+  }
+
+  .card {
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  h1 {
+    font-size: 24px;
+  }
+
+  .leaders-select {
+    grid-template-columns: 1fr;
+  }
+
+  .add-row {
+    flex-direction: column;
+  }
+
+  .button-row {
+    flex-direction: column;
+  }
+
+  .button-row button,
+  .add-row button,
+  .section-header button {
+    width: 100%;
+  }
+
+  .section-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .training-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .remove-program-btn {
+    width: 100%;
+  }
+}
+
+/* ==================== HEADER MIT LOGO ==================== */
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.header-text {
+  flex: 1;
+}
+
+.logo {
+  width: 240px;           /* Laptop / Desktop */
+  max-width: 250px;
+  height: auto;
+  flex-shrink: 0;
+  border-radius: 10px;
+  object-fit: contain;
+}
+
+/* ==================== iPHONE (Safari + Chrome) ==================== */
+@media (max-width: 640px) {
+  .logo {
+    width: 110px;          /* ca. 20% größer als die vorherigen 92px */
+    max-width: 110px;
+  }
+  
+  .header-content h1 {
+    font-size: 23px;
+  }
+}
+
+/* Feinjustierung für sehr schmale Displays (z.B. iPhone SE oder Chrome im Querformat) */
+@media (max-width: 420px) {
+  .logo {
+    width: 98px;           /* etwas kleiner als bei 640px, bleibt aber größer als vorher */
+    max-width: 98px;
+  }
+}
+
+
+/* ====================== LOGIN VERBESSERUNG ====================== */
+#login-card select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  font-size: 16px;
+  height: 54px;
+}
+
+#login-card .password-large {
+  padding: 14px 14px !important;
+  font-size: 17px !important;
+  height: 35px !important;
 }
