@@ -388,3 +388,37 @@ button.secondary:hover {
     width: 100%;
   }
 }
+
+/* ==================== HEADER MIT LOGO ==================== */
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.logo {
+  width: 68px;           /* Logo-Größe – du kannst das später anpassen */
+  height: auto;
+  flex-shrink: 0;
+  border-radius: 8px;    /* leichte Abrundung, sieht meist schöner aus */
+}
+
+.header-content h1 {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.1;
+}
+
+.header-content .subtitle {
+  margin: 2px 0 0 0;
+}
+
+/* Für kleine Bildschirme (Handy) */
+@media (max-width: 640px) {
+  .logo {
+    width: 55px;
+  }
+  .header-content h1 {
+    font-size: 24px;
+  }
+}
