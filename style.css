@@ -402,8 +402,8 @@ button.secondary:hover {
 }
 
 .logo {
-  width: 160px;                  /* gute Größe für Laptop */
-  max-width: 180px;              /* verhindert zu groß werden */
+  width: 240px;                  /* gute Größe für Laptop */
+  max-width: 250px;              /* verhindert zu groß werden */
   height: auto;
   flex-shrink: 0;
   border-radius: 10px;
