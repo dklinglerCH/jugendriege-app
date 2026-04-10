@@ -393,32 +393,35 @@ button.secondary:hover {
 .header-content {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
 }
 
 .logo {
-  width: 68px;           /* Logo-Größe – du kannst das später anpassen */
+  width: 52px;           /* ← Hier ist die neue, kleinere Größe */
   height: auto;
   flex-shrink: 0;
-  border-radius: 8px;    /* leichte Abrundung, sieht meist schöner aus */
+  border-radius: 8px;
+  object-fit: contain;   /* verhindert Verzerrung */
 }
 
 .header-content h1 {
   margin: 0;
-  font-size: 28px;
-  line-height: 1.1;
+  font-size: 27px;
+  line-height: 1.05;
 }
 
 .header-content .subtitle {
-  margin: 2px 0 0 0;
+  margin: 3px 0 0 0;
+  color: var(--muted);
 }
 
-/* Für kleine Bildschirme (Handy) */
+/* Für Handys */
 @media (max-width: 640px) {
   .logo {
-    width: 55px;
+    width: 46px;
   }
   .header-content h1 {
-    font-size: 24px;
+    font-size: 23px;
   }
+}
 }
