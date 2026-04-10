@@ -478,37 +478,60 @@ async function generatePdf() {
   doc.text(`Zeitraum: ${formatDateShort(fromDate)} bis ${formatDateShort(toDate)}`, margin, y);
   y += 10;
 
-  // Fehlende Freitage
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(11);
-  const missingText = missingFridays.length 
-    ? missingFridays.map(d => formatDateShort(d)).join(", ") 
-    : "Keine";
-  doc.text(`Fehlende Freitage ohne Eintrag: ${missingText}`, margin, y);
-  y += 12;
+  // === FEHLENDE FREITAGE ALS KOMPAKTE TABELLE ===
+  if (missingFridays.length > 0) {
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.text("Fehlende Freitage ohne Eintrag:", margin, y);
+    y += 8;
 
-  // TABELLE
+    const colWidth = 38;
+    const rowHeight = 7;
+    let x = margin;
+    let count = 0;
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+
+    missingFridays.forEach(date => {
+      if (count % 4 === 0 && count !== 0) {
+        y += rowHeight;
+        x = margin;
+      }
+      doc.text(formatDateShort(date), x + 2, y + 5.5);
+      x += colWidth;
+      count++;
+    });
+    y += rowHeight + 6;
+  } else {
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.text("Fehlende Freitage ohne Eintrag: Keine", margin, y);
+    y += 12;
+  }
+
+  // === HAUPT-TABELLE ===
   if (trainingsInRange.length === 0) {
     doc.text("Keine Trainings im gewählten Zeitraum.", margin, y);
   } else {
-    const colWidths = [30, 24, 35, 30, 65];   // Programm jetzt deutlich breiter
+    const colWidths = [29, 23, 34, 29, 72];   // Programm-Spalte breit
     let x = margin;
 
     // Header
     doc.setFillColor(240, 240, 240);
-    doc.rect(x, y, colWidths.reduce((a, b) => a + b, 0), 10, "F");
+    doc.rect(x, y, colWidths.reduce((a, b) => a + b, 0), 11, "F");
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
     ["Datum", "Status", "Fokus", "Leiter", "Programm"].forEach((text, i) => {
-      doc.text(text, x + 2, y + 7);
+      doc.text(text, x + 2, y + 7.5);
       x += colWidths[i];
     });
-    y += 10;
+    y += 11;
 
     // Zeilen
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
-    const rowHeight = 9;   // etwas höher für bessere Lesbarkeit
+    const rowHeight = 10;
 
     trainingsInRange.forEach(training => {
       if (y > 270) { 
@@ -532,7 +555,7 @@ async function generatePdf() {
       doc.rect(x, y, colWidths.reduce((a, b) => a + b, 0), rowHeight);
 
       row.forEach((text, i) => {
-        doc.text(text, x + 2, y + 6, { maxWidth: colWidths[i] - 4 });
+        doc.text(text, x + 2, y + 6.5, { maxWidth: colWidths[i] - 4 });
         x += colWidths[i];
       });
       y += rowHeight;
