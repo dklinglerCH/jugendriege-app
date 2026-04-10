@@ -402,7 +402,7 @@ button.secondary:hover {
 }
 
 .logo {
-  width: 200px;           /* Laptop / Desktop */
+  width: 240px;           /* Laptop / Desktop */
   max-width: 250px;
   height: auto;
   flex-shrink: 0;
@@ -410,11 +410,11 @@ button.secondary:hover {
   object-fit: contain;
 }
 
-/* ==================== iPHONE ALLGEMEIN ==================== */
+/* ==================== iPHONE (Safari + Chrome) ==================== */
 @media (max-width: 640px) {
   .logo {
-    width: 92px;          /* ← Hier änderst du die Größe für iPhone (Safari + Chrome) */
-    max-width: 92px;
+    width: 110px;          /* ca. 20% größer als die vorherigen 92px */
+    max-width: 110px;
   }
   
   .header-content h1 {
@@ -422,10 +422,10 @@ button.secondary:hover {
   }
 }
 
-/* Noch etwas kleiner für sehr schmale Viewports (z.B. Chrome iOS in manchen Modi) */
+/* Feinjustierung für sehr schmale Displays (z.B. iPhone SE oder Chrome im Querformat) */
 @media (max-width: 420px) {
   .logo {
-    width: 82px;          /* ← Feinjustierung für extrem schmale Darstellung */
-    max-width: 82px;
+    width: 98px;           /* etwas kleiner als bei 640px, bleibt aber größer als vorher */
+    max-width: 98px;
   }
 }
