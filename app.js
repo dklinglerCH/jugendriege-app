@@ -514,7 +514,7 @@ async function generatePdf() {
   if (trainingsInRange.length === 0) {
     doc.text("Keine Trainings im gewählten Zeitraum.", margin, y);
   } else {
-    const colWidths = [19, 23, 24, 19, 102];   // Programm-Spalte breit
+    const colWidths = [15, 17, 24, 19, 112];   // Programm-Spalte breit
     let x = margin;
 
     // Header
