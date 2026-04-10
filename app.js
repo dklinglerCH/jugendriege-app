@@ -467,6 +467,7 @@ async function generatePdf() {
   let y = 20;
   const margin = 15;
 
+  // Titel + Zeitraum
   doc.setFont("helvetica", "bold");
   doc.setFontSize(16);
   doc.text("Jugendriege Glattfelden – Trainingsübersicht", margin, y);
@@ -477,36 +478,49 @@ async function generatePdf() {
   doc.text(`Zeitraum: ${formatDateShort(fromDate)} bis ${formatDateShort(toDate)}`, margin, y);
   y += 10;
 
+  // Fehlende Freitage
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
-  const missingText = missingFridays.length ? missingFridays.map(d => formatDateShort(d)).join(", ") : "Keine";
+  const missingText = missingFridays.length 
+    ? missingFridays.map(d => formatDateShort(d)).join(", ") 
+    : "Keine";
   doc.text(`Fehlende Freitage ohne Eintrag: ${missingText}`, margin, y);
   y += 12;
 
+  // TABELLE
   if (trainingsInRange.length === 0) {
     doc.text("Keine Trainings im gewählten Zeitraum.", margin, y);
   } else {
-    const colWidths = [32, 26, 38, 32, 52];
+    // Neue Spaltenbreiten (Programm deutlich breiter)
+    const colWidths = [30, 24, 35, 30, 65];   // Datum | Status | Fokus | Leiter | Programm
     let x = margin;
 
+    // Header
     doc.setFillColor(240, 240, 240);
-    doc.rect(x, y, colWidths.reduce((a,b)=>a+b,0), 10, "F");
+    doc.rect(x, y, colWidths.reduce((a, b) => a + b, 0), 10, "F");
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
-    ["Datum","Status","Fokus","Leiter","Programm"].forEach((text,i) => {
+    ["Datum", "Status", "Fokus", "Leiter", "Programm"].forEach((text, i) => {
       doc.text(text, x + 2, y + 7);
       x += colWidths[i];
     });
     y += 10;
 
+    // Zeilen
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
+    const rowHeight = 9;   // etwas höher für bessere Umbrüche
 
     trainingsInRange.forEach(training => {
-      if (y > 270) { doc.addPage(); y = 20; }
+      if (y > 270) { 
+        doc.addPage(); 
+        y = 20; 
+      }
+
       const prog = isTrainingFinished(training) && training.finalizedProgram.length 
         ? training.finalizedProgram 
         : training.program.map(p => p.text);
+
       const row = [
         formatDateShort(training.date),
         training.status,
@@ -514,13 +528,15 @@ async function generatePdf() {
         training.leaders.join(", ") || "-",
         prog.join(", ") || "-"
       ];
+
       x = margin;
-      doc.rect(x, y, colWidths.reduce((a,b)=>a+b,0), 8);
-      row.forEach((text,i) => {
+      doc.rect(x, y, colWidths.reduce((a, b) => a + b, 0), rowHeight);
+
+      row.forEach((text, i) => {
         doc.text(text, x + 2, y + 6, { maxWidth: colWidths[i] - 4 });
         x += colWidths[i];
       });
-      y += 8;
+      y += rowHeight;
     });
   }
 
