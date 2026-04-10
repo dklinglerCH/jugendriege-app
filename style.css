@@ -1,449 +1,270 @@
+/* =============================================
+   JUGENDRIEGE GLATTFELDEN – MODERNES DESIGN
+   Mit Dark Mode + professionellem Look
+   ============================================= */
+
 * {
   box-sizing: border-box;
 }
 
 :root {
-  --bg: #f4f7fb;
+  --bg: #f8f9fc;
   --card: #ffffff;
   --text: #1f2937;
-  --muted: #6b7280;
-  --line: #dbe3ee;
-  --primary: #2563eb;
-  --primary-hover: #1d4ed8;
-  --secondary: #e5e7eb;
-  --secondary-hover: #d1d5db;
-  --shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
-  --radius: 16px;
+  --muted: #64748b;
+  --line: #e2e8f0;
+  --primary: #1e40af;
+  --primary-hover: #16337f;
+  --shadow: 0 10px 30px -5px rgba(30, 64, 175, 0.15);
+  --radius: 20px;
+}
+
+/* Dark Mode */
+body.dark {
+  --bg: #0f172a;
+  --card: #1e2937;
+  --text: #f1f5f9;
+  --muted: #94a3b8;
+  --line: #334155;
+  --shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.4);
 }
 
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background: var(--bg);
   color: var(--text);
+  line-height: 1.5;
 }
 
 .app {
-  max-width: 720px;
+  max-width: 760px;
   margin: 0 auto;
   padding: 16px;
 }
 
+/* Karten */
 .card {
   background: var(--card);
   border-radius: var(--radius);
-  padding: 18px;
-  margin-bottom: 16px;
+  padding: 24px;
+  margin-bottom: 20px;
   box-shadow: var(--shadow);
+  transition: all 0.3s ease;
 }
 
-h1,
-h2,
-h3,
-p {
-  margin-top: 0;
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 35px -8px rgba(30, 64, 175, 0.25);
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.logo {
+  width: 64px;
+  height: auto;
+  border-radius: 14px;
+  flex-shrink: 0;
 }
 
 h1 {
   font-size: 28px;
-  margin-bottom: 8px;
-}
-
-h2 {
-  font-size: 20px;
-  margin-bottom: 0;
-}
-
-h3 {
-  font-size: 17px;
-  margin-bottom: 6px;
+  margin: 0;
+  font-weight: 700;
 }
 
 .subtitle {
   color: var(--muted);
-  margin-bottom: 0;
+  margin: 4px 0 0 0;
+  font-size: 15px;
 }
 
-ul {
-  margin: 0;
-  padding-left: 20px;
+/* Dark Mode Toggle */
+.dark-toggle-btn {
+  background: none;
+  border: none;
+  font-size: 26px;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 50%;
+  transition: all 0.3s;
 }
 
-li {
-  margin-bottom: 8px;
+.dark-toggle-btn:hover {
+  background: rgba(30, 64, 175, 0.1);
+  color: var(--primary);
 }
 
+/* Login Card */
+#login-card {
+  max-width: 440px;
+  margin: 60px auto 40px;
+  text-align: center;
+}
+
+#login-card h2 {
+  margin-bottom: 24px;
+}
+
+#login-card select,
+.password-large {
+  width: 100%;
+  padding: 16px 18px;
+  border: 2px solid var(--line);
+  border-radius: 16px;
+  background: var(--card);
+  font-size: 17px;
+  height: 58px;
+}
+
+#login-card select:focus,
+.password-large:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(30, 64, 175, 0.15);
+}
+
+/* Formulare */
 .form-group {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 label {
   display: block;
   font-weight: 600;
   margin-bottom: 8px;
+  color: var(--text);
 }
 
 input[type="date"],
 input[type="text"],
 select {
   width: 100%;
-  padding: 12px 14px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: #fff;
+  padding: 14px 16px;
+  border: 2px solid var(--line);
+  border-radius: 16px;
+  background: var(--card);
   font-size: 16px;
 }
 
-input[type="date"]:focus,
-input[type="text"]:focus,
+input:focus,
 select:focus {
-  outline: none;
   border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(30, 64, 175, 0.15);
 }
 
-.add-row {
-  display: flex;
-  gap: 8px;
-  align-items: stretch;
-}
-
-.add-row input {
-  flex: 1;
-}
-
+/* Buttons */
 .button-row {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
-button {
-  border: none;
-  border-radius: 12px;
-  padding: 11px 14px;
-  font-size: 14px;
+.button-row button {
+  padding: 14px 24px;
+  border-radius: 16px;
   font-weight: 600;
-  background: var(--primary);
-  color: white;
-  cursor: pointer;
+  transition: all 0.3s;
+  flex: 1;
+  min-width: 160px;
 }
 
-button:hover {
-  background: var(--primary-hover);
-}
-
-button.secondary {
-  background: var(--secondary);
+.secondary {
+  background: var(--line);
   color: var(--text);
 }
 
-button.secondary:hover {
-  background: var(--secondary-hover);
+.secondary:hover {
+  background: #cbd5e1;
 }
 
-.small-btn {
-  padding: 9px 12px;
-  font-size: 13px;
+/* Training Cards & Listen */
+.training-entry,
+#last-trainings-list > li,
+.checklist li,
+.program-checklist li {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
+  transition: all 0.2s;
 }
 
-.hidden {
-  display: none;
+.training-entry:hover,
+#last-trainings-list > li:hover {
+  border-color: var(--primary);
+  box-shadow: 0 8px 20px -6px rgba(30, 64, 175, 0.15);
 }
 
+/* Section Header */
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
-.leaders-select {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.leaders-select label {
-  display: flex;
+/* Loading Overlay */
+#loading-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(15, 23, 42, 0.92);
+  display: none;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 0;
-  font-weight: 500;
-  background: #f8fafc;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 12px;
+  justify-content: center;
+  flex-direction: column;
+  z-index: 9999;
+  color: white;
+  gap: 16px;
 }
 
-.leaders-select input {
-  margin: 0;
-  width: 18px;
-  height: 18px;
+.spinner {
+  width: 52px;
+  height: 52px;
+  border: 6px solid rgba(255,255,255,0.3);
+  border-top: 6px solid #1e40af;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
 }
 
-.checklist {
-  list-style: none;
-  padding-left: 0;
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
-.checklist li {
-  background: #f8fafc;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 12px;
-  margin-bottom: 10px;
-}
-
-.training-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-}
-
-.training-row span {
-  flex: 1;
-  word-break: break-word;
-}
-
-.remove-program-btn {
-  flex-shrink: 0;
-}
-
+/* Training Meta */
 .training-meta {
   color: var(--muted);
   font-size: 15px;
   margin-bottom: 6px;
 }
 
-.section-label {
-  font-weight: 700;
-  margin-bottom: 8px;
-}
-
-#next-training-box {
-  background: #f8fafc;
-  border: 1px solid var(--line);
-  border-radius: 14px;
+/* Kleine Anpassungen für bessere Lesbarkeit */
+.program-checklist label,
+.checklist li {
   padding: 14px;
-}
-
-#next-training-date {
-  font-weight: 700;
-  font-size: 18px;
-  margin-bottom: 8px;
-}
-
-#next-training-status,
-#next-training-focus,
-#next-training-leaders {
-  margin-bottom: 6px;
-}
-
-.next-training-program-block {
-  margin-top: 14px;
-}
-
-.program-checklist {
-  list-style: none;
-  padding-left: 0;
-}
-
-.program-checklist li {
-  margin-bottom: 10px;
-}
-
-.program-checklist label {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 0;
-  font-weight: 500;
-  background: #ffffff;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 12px;
-}
-
-.program-checklist input[type="checkbox"] {
-  margin: 0;
-  width: 18px;
-  height: 18px;
-}
-
-.next-training-add-row {
-  margin-top: 12px;
-}
-
-#last-trainings-list {
-  list-style: none;
-  padding-left: 0;
-}
-
-#last-trainings-list > li {
-  background: #f8fafc;
-  border: 1px solid var(--line);
   border-radius: 14px;
-  padding: 14px;
-  margin-bottom: 12px;
-}
-
-#last-trainings-list p {
-  margin: 6px 0;
-}
-
-#last-trainings-list ul {
-  margin-top: 8px;
-  padding-left: 20px;
-}
-
-.training-entry {
-  background: #f8fafc;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 14px;
-  margin-bottom: 12px;
-}
-
-.training-entry-header {
-  margin-bottom: 10px;
-}
-
-.training-entry-header h3 {
-  margin-bottom: 8px;
-}
-
-.training-entry-header p {
-  margin: 6px 0;
-}
-
-.training-entry-program {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--line);
-}
-
-.training-entry-program strong {
-  display: block;
-  margin-bottom: 8px;
-}
-
-.training-entry-program p {
-  margin: 6px 0;
-}
-
-.training-entry-program ul {
-  margin: 8px 0 0 0;
-  padding-left: 20px;
-}
-
-.training-entry-program li {
-  margin-bottom: 6px;
 }
 
 @media (max-width: 640px) {
-  .app {
-    padding: 12px;
-  }
-
   .card {
-    padding: 14px;
-    border-radius: 14px;
+    padding: 20px;
+    border-radius: 18px;
   }
-
-  h1 {
-    font-size: 24px;
-  }
-
-  .leaders-select {
-    grid-template-columns: 1fr;
-  }
-
-  .add-row {
-    flex-direction: column;
-  }
-
-  .button-row {
-    flex-direction: column;
-  }
-
-  .button-row button,
-  .add-row button,
-  .section-header button {
-    width: 100%;
-  }
-
-  .section-header {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .training-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .remove-program-btn {
-    width: 100%;
-  }
-}
-
-/* ==================== HEADER MIT LOGO ==================== */
-.header-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.header-text {
-  flex: 1;
-}
-
-.logo {
-  width: 240px;           /* Laptop / Desktop */
-  max-width: 250px;
-  height: auto;
-  flex-shrink: 0;
-  border-radius: 10px;
-  object-fit: contain;
-}
-
-/* ==================== iPHONE (Safari + Chrome) ==================== */
-@media (max-width: 640px) {
-  .logo {
-    width: 110px;          /* ca. 20% größer als die vorherigen 92px */
-    max-width: 110px;
-  }
-  
-  .header-content h1 {
-    font-size: 23px;
-  }
-}
-
-/* Feinjustierung für sehr schmale Displays (z.B. iPhone SE oder Chrome im Querformat) */
-@media (max-width: 420px) {
-  .logo {
-    width: 98px;           /* etwas kleiner als bei 640px, bleibt aber größer als vorher */
-    max-width: 98px;
-  }
-}
-
-
-/* ====================== LOGIN VERBESSERUNG ====================== */
-#login-card select {
-  width: 100%;
-  padding: 12px 14px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: #fff;
-  font-size: 16px;
-  height: 54px;
-}
-
-#login-card .password-large {
-  padding: 14px 14px !important;
-  font-size: 17px !important;
-  height: 35px !important;
+  h1 { font-size: 24px; }
+  .logo { width: 52px; }
 }
