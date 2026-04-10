@@ -403,7 +403,7 @@ button.secondary:hover {
 
 .logo {
   width: 160px;                  /* gute Größe für Laptop */
-  max-width: 130px;              /* verhindert zu groß werden */
+  max-width: 180px;              /* verhindert zu groß werden */
   height: auto;
   flex-shrink: 0;
   border-radius: 10px;
