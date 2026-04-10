@@ -393,35 +393,35 @@ button.secondary:hover {
 .header-content {
   display: flex;
   align-items: center;
-  gap: 14px;
+  justify-content: space-between;   /* ← Das sorgt dafür, dass Logo rechts ist */
+  gap: 16px;
+  flex-wrap: wrap;                  /* Falls es auf sehr kleinen Bildschirmen eng wird */
 }
 
 .logo {
-  width: 52px;           /* ← Hier ist die neue, kleinere Größe */
+  width: 58px;           /* ← Hier kannst du die Größe ändern */
   height: auto;
   flex-shrink: 0;
   border-radius: 8px;
-  object-fit: contain;   /* verhindert Verzerrung */
+  object-fit: contain;
 }
 
 .header-content h1 {
   margin: 0;
-  font-size: 27px;
-  line-height: 1.05;
+  font-size: 26px;
+  line-height: 1.1;
 }
 
 .header-content .subtitle {
   margin: 3px 0 0 0;
-  color: var(--muted);
 }
 
 /* Für Handys */
 @media (max-width: 640px) {
   .logo {
-    width: 46px;
+    width: 52px;       /* ← Hier die Größe fürs Handy anpassen */
   }
   .header-content h1 {
     font-size: 23px;
   }
-}
 }
